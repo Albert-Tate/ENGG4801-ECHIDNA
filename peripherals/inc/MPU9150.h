@@ -17,6 +17,9 @@
         #define MPU9150_ADDRESS 0b1101000
     #endif
     
+    #define MPU9150_ON command_set_gpio
+    #define MPU9150_OFF command_reset_gpio //obv need a better title
+    
     //I2C LSB for command type
     #define MPU9150_WRITE 0x00
     #define MPU9150_READ 0x01
@@ -34,7 +37,7 @@
     //PWR_MGMT_2 => 0x07 (disable gyro, keep everything else)
     
     uint8_t MPU9150_read_byte(uint8_t addr);
-    void MPU9150_write_byte(uint8_t addr, uin8_t byte);
+    void MPU9150_write_byte(uint8_t addr, uint8_t byte);
     
     void MPU9150_read_buffer(uint8_t addr, uint8_t* buff, uint8_t len);
     void MPU9150_write_buffer(uint8_t addr, uint8_t* buff, uint8_t len);
