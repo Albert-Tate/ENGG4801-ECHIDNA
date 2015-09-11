@@ -17,4 +17,5 @@ functions, and other non-peripheral microcontroller initialization functions
 go here. */
 
 void ConfigureOscillator(void); /* Handles clock switching/osc initialization */
-void delay_ms(uint16_t time);
+void delay(uint16_t time);
+void delay_us_3(uint16_t time);

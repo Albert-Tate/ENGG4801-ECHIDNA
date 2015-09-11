@@ -7,7 +7,8 @@
 
 #include "stdint.h"
 #include "I2C.h"
-#include "MPU9150.h"
+#include "../inc/i2c-Master.h"
+#include "../inc/MPU9150.h" //I blame MPLABX Entirely
     
 //Start -> TX 8 bits(ADDR) -> ACK -> More Bytes -> Ack etc -> STOP
 //Start -> TX 8 bits -> ACK -> STOP
@@ -15,18 +16,18 @@
     
 void MPU9150_init(void) {
     //DLPF => 1k (CONFIG => 0x02)
-    I2C_send_byte(MPU9150_ADDRESS);
-    I2C_send_byte(MPU9150_WRITE | MPU9150_CONFIG);
-    I2C_send_byte(0x02);
+    i2c_send_byte(MPU9150_ADDRESS);
+    i2c_send_byte(MPU9150_WRITE | MPU9150_CONFIG);
+    i2c_send_byte(0x02);
         
     //SMPRT_DIV => 9 (sample rate then 1k/(1+9) = 100 Hz
-    I2C_send_byte(MPU9150_ADDRESS);
-    I2C_send_byte(MPU9150_WRITE | MPU9150_SMPLRT_DIV); //CHECK REGISTER
-    I2C_send_byte(0x09);
+    i2c_send_byte(MPU9150_ADDRESS);
+    i2c_send_byte(MPU9150_WRITE | MPU9150_SMPLRT_DIV); //CHECK REGISTER
+    i2c_send_byte(0x09);
         
-    I2C_send_byte(MPU9150_ADDRESS);
-    I2C_send_byte(MPU9150_WRITE | 0x00); //CHECK REGISTER
-    I2C_send_byte(0x00);
+    i2c_send_byte(MPU9150_ADDRESS);
+    i2c_send_byte(MPU9150_WRITE | 0x00); //CHECK REGISTER
+    i2c_send_byte(0x00);
     //ACCEL_CONFIG => 0x00 for +-2g (ADD FUNCTIONS TO CHANGE THIS!!!!!)
     //FIFO_EN => 0x00 (don't use FIFO)
     //PWR_MGMT_1 => CLKSEL = 0 (int 8MHz), SLEEP = 0, TEMP_DIS = 0 (enable temp sensor)

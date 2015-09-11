@@ -40,12 +40,12 @@ __builtin functions. */
 /* TODO Add clock switching code if appropriate.  An example stub is below.   */
 void ConfigureOscillator(void)
 {
-    OSCCONbits.COSC     = 0b111; //Fast RC Oscillator with Postscaler
-    OSCCONbits.NOSC     = 0b111; //New oscillator??
+    //OSCCONbits.COSC     = 0b111; //Existing configuration, Ronly
+    OSCCONbits.NOSC     = 0b111; //Fast RC Oscillator with Postscaler
     CLKDIVbits.DOZE     = 0b000; //No Prescaler
+    CLKDIVbits.DOZEN    = 0b0;
     CLKDIVbits.RCDIV    = 0b000; //No clock division
 #if 0
-
         /* Disable Watch Dog Timer */
         //RCONbits.SWDTEN = 0;
 
@@ -62,8 +62,13 @@ void ConfigureOscillator(void)
         
 }
 
-void delay_ms(uint16_t time) {
-    unsigned long timel = time * 1000;
+void delay(uint16_t time) {
+    unsigned long timel = time * 1000; //~3uS/tick atm
+    while(timel--);
+}
+
+void delay_us_3(uint16_t time) { //Delay 3 us X times (becomes closer to 1us/time as time increases)
+    unsigned long timel = time;
     while(timel--);
 }
 

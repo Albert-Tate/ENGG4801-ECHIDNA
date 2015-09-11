@@ -50,7 +50,7 @@
 // CONFIG3
 #pragma config WPFP = WPFP127           // Write Protection Flash Page Segment Boundary (Page 127 (0x1FC00))
 #pragma config VBTBOR = ON              // VBAT BOR enable bit (VBAT BOR enabled)
-#pragma config SOSCSEL = ON             // SOSC Selection bits (SOSC circuit selected)
+#pragma config SOSCSEL = OFF             // SOSC Selection bits (SOSC circuit selected)
 #pragma config WDTWIN = PS25_0          // Watch Dog Timer Window Width (Watch Dog Timer Window Width is 25 percent)
 #pragma config BOREN = ON               // Brown-out Reset Enable (Brown-out Reset Enable)
 #pragma config WPDIS = WPDIS            // Segment Write Protection Disable (Disabled)
@@ -63,7 +63,7 @@
 #pragma config IOL1WAY = ON             // IOLOCK One-Way Set Enable bit (Once set, the IOLOCK bit cannot be cleared)
 #pragma config OSCIOFCN = ON            // OSCO Pin Configuration (OSCO/CLKO/RC15 functions as port I/O (RC15))
 #pragma config FCKSM = CSDCMD           // Clock Switching and Fail-Safe Clock Monitor Configuration bits (Clock switching and Fail-Safe Clock Monitor are disabled)
-#pragma config FNOSC = LPRC             // Initial Oscillator Select (Low-Power RC Oscillator (LPRC))
+#pragma config FNOSC = FRCPLL            // Initial Oscillator Select (Low-Power RC Oscillator (LPRC))
 #pragma config ALTVREF = DLT_AV_DLT_CV  // Alternate VREF/CVREF Pins Selection bit (Voltage reference input, ADC =RA9/RA10 Comparator =RA9,RA10)
 #pragma config IESO = ON                // Internal External Switchover (Enabled)
 

@@ -3,7 +3,8 @@
  *  Description: Header file for IMU, uses I2C
  *  Author: Albert Tate
  *  Date: 05/05/15
- **********************************************************/
+ **********************************************************
+ */
  
 #ifndef __MPU9150_H__
 #define __MPU9150_H__
@@ -11,6 +12,7 @@
     #define MPU9150_TEMP_CONVERT(X) ((float)X/340.0 + 35)
 
     //I2C address depends on physical pin wiring (7 bits)
+//#define AD0 1
     #ifdef AD0
         #define MPU9150_ADDRESS 0b1101001
     #else   
@@ -137,10 +139,5 @@
     #define MPU9150_FIFO_COUNTL     0x73
     #define MPU9150_FIFO_R_W        0x74
     #define MPU9150_WHO_AM_I        0x75    //R
-    
-    
-    
-    
-    
-    
+
 #endif
