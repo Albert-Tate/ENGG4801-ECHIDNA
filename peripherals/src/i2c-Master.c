@@ -171,6 +171,14 @@ i2c_write(char addr, char subaddr, char value)
    reset_i2c_bus();
 }
 
+void
+i2c_command(char addr, char command) {
+    i2c_start();
+    i2c_send_byte(addr);
+    i2c_send_byte(command);
+    reset_i2c_bus();
+}
+
 char
 i2c_read_reg(char addr, char subaddr)
 {

@@ -17,6 +17,7 @@
 
 #include <stdint.h>        /* Includes uint16_t definition */
 #include <stdbool.h>       /* Includes true/false definition */
+#include "system.h"
 
 /******************************************************************************/
 /* Interrupt Vector Options                                                   */
@@ -156,3 +157,13 @@
 /******************************************************************************/
 
 /* TODO Add interrupt routine code here. */
+
+void __attribute__((interrupt,auto_psv)) _RTCCInterrupt(void)
+{
+    //Clear flag
+    IFS3bits.RTCIF = 0;
+
+    LATDbits.LATD0 = 1;
+    delay(1000);
+    LATDbits.LATD0 = 0;
+}

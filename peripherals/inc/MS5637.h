@@ -19,6 +19,8 @@
     #define MS5647_CMD_CONV_D1_256 0x40 //Uncompensated Pressure 24 bits
     #define MS5637_CMD_CONV_D2_256 0x50 //Uncompensated Temperature 24 bits
     #define MS5637_CMD_PROM_READ 0xA0 //Or this with the next addresses
+
+    #define MS5647_RESET 0x1E
     
     //General process: Send CMD_CONV_D1 to get the thing to get the data ready
     //Send ADC_READ to get that data ONLY AFTER IT HAS BEEN CONVERTED, EARLIER ATTEMPTS WILL CORRUPT THE DATA
