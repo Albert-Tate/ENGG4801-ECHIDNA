@@ -79,11 +79,12 @@ void RTC_SNAPSHOT(struct TIME*);
 void RTC_ALARMSET(uint8_t);
 
 int16_t main(void) {
-/*    int x = 0;
+    int x = 0;
+    uint8_t WHOMI = 0;
     uint16_t RTC_REG;
     int8_t sec;
-    int8_t min; */
-    long x = 0;
+    int8_t min; 
+    //long x = 0;
     //CHECK IF DPSLP IS SET AND DO DIFFERENT THINGS!
 
     aerrno = ERR_OK; /*global error var*/
@@ -92,34 +93,56 @@ int16_t main(void) {
     /* Configure the oscillator for the device */
     ConfigureOscillator();
 
-    __builtin_write_OSCCONL(OSCCON & ~0x40);
+    /*__builtin_write_OSCCONL(OSCCON & ~0x40);
             //SPI
     SPI1CLK = 8; //Good luck
     SPI1MOSI = 7;
     _SDI1R = 24; //wtf input 24r
             //UART
-    UART_TX = 3;
-    _U1RXR = 11; //?????
-    __builtin_write_OSCCONL(OSCCON | 0x40);
+    UART_TX = 3; //D10
+    _U1RXR = 11; //D11
+    __builtin_write_OSCCONL(OSCCON | 0x40); */
 
     //spi1Init(0);
-    UART1Init(6); //Gives 142000 Baud rate. Clock at approx 20Mhz (10mHz FCY)
-    UART1PutChar('S');
+    //UART1Init(6); //Gives 142000 Baud rate. Clock at approx 20Mhz (10mHz FCY)
+    //UART1PutChar('S');
     
-    RTC_INIT();
-    TRISDbits.TRISD0 = 0; //Set D0 as output
+    //RTC_INIT();
+    //TRISFbits.TRISF0 = 0; //Set F0 as output (MS5VCC)
+    TRISDbits.TRISD9 = 0;
+    TRISDbits.TRISD6 = 0; //Set D6 as output (MPUVCC)
     //TRISDbits.TRISD3 = 0; TRISDbits.TRISD2 = 0;
     //RTC_ALARMSET(1);
-    ADC_init();
-    //i2c_init(157); //100kHz. See data sheet
+    //ADC_init();
+    i2c_init(157); //100kHz. See data sheet
+    //i2c_init(357);
     //LATDbits.LATD0 = 1;
     //delay(30000);
     //LATDbits.LATD0 = 0;
+    //LATFbits.LATF0 = 1; //Turn on MS5637 Pressure sensor
+
+    //LATDbits.LATD9 = 1; //LED
+    
+    LATDbits.LATD6 = 1; //Turn on accelerometer
+    i2c_write(MPU9150_ADDRESS, MPU9150_PWR_MGMT_1, 0x01);
 
     while(1) {
-        x = ADCSample();
-        UART_PUTVAR("ADC", 3, ((x*3300) / 1024));
-        delay_us_3(1000); 
+        WHOMI = i2c_read_reg(MPU9150_ADDRESS, MPU9150_WHO_AM_I);
+        if(WHOMI != 0x68) {
+            LATDbits.LATD9 = 1; //turn on LED
+        } else {
+            LATDbits.LATD9 = 0;
+        }
+        delay_us_3(10000);
+        delay_us_3(10000);
+        delay_us_3(10000);
+        delay_us_3(10000);
+        delay_us_3(10000);
+        delay_us_3(10000);
+
+
+        //x = ADCSample();
+        //UART_PUTVAR("ADC", 3, ((x*3300) / 1024));
         //i2c_command(MS5637_ADDR,  MS5647_RESET);
         /*RTC_SNAPSHOT(&local_time);
         UART_PUTVAR("yr", 2, local_time.year);
