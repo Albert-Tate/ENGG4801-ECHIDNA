@@ -30,13 +30,13 @@ i2c_start(void)
 {
     int x = 0;
     //Begin hax -> Maybe not necessary?
-    I2C1CONbits.I2CEN = 0;	//disable IIC 
+    /*I2C1CONbits.I2CEN = 0;	//disable IIC
     delay_us_3(10); 
     TRISFbits.TRISF4 = 0; 
     LATFbits.LATF4 = 0; 
     delay_us_3(10); 
     LATFbits.LATF4 = 1; 
-    delay_us_3(10);
+    delay_us_3(10);*/
     //hax compleet
 
     I2C2CONbits.ACKDT = 0; //Reset ack
@@ -117,7 +117,7 @@ i2c_send_byte(int data)
     
     if(I2C2STATbits.ACKSTAT == 1) {
         aerrno = I2CACK; //Ack failed to receive
-        reset_i2c_bus(); //causes us to  then timeout on receive?
+        //reset_i2c_bus(); //causes us to  then timeout on receive?
         return(1);
     }
     delay_us_3(1);
@@ -132,8 +132,7 @@ i2c_read(void)
 
     I2C2CONbits.RCEN = 1;
 
-    while(!I2C2STATbits.RBF)
-    {
+    while(!I2C2STATbits.RBF) {
         i++;
         if (i > 2000) {
             aerrno = I2CRECTIMEOUT;
@@ -149,21 +148,8 @@ i2c_read(void)
 char
 i2c_read_ack(void)
 {
-    int i = 0;
     char data = 0;
-
-    I2C2CONbits.RCEN = 1;
-
-    while(!I2C2STATbits.RBF)
-    {
-        i++;
-        if (i > 2000) {
-            aerrno = I2CRECTIMEOUT;
-            break;
-        }
-    }
-
-    data = I2C2RCV;
+    data = i2c_read();
 
     I2C2CONbits.ACKEN = 1;
     delay_us_3(10);
@@ -205,5 +191,17 @@ i2c_read_reg(char addr, char subaddr)
    temp = i2c_read();
 
    reset_i2c_bus();
+   return temp;
+}
+
+char
+i2c_poll(char addr)
+{
+   unsigned char temp = 0;
+
+   i2c_start();
+   temp = i2c_send_byte(addr);
+   reset_i2c_bus();
+
    return temp;
 }

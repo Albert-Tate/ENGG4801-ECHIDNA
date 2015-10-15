@@ -21,5 +21,6 @@ char i2c_send_byte(int data);
 void i2c_write(char addr, char subaddr, char value);
 char i2c_read_reg(char addr, char subaddr);
 void i2c_command(char addr, char command);
+char i2c_poll(char addr);
 
 #endif

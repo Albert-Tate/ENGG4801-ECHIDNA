@@ -16,7 +16,7 @@
     #define MS5637_READ 0x01
     
     #define MS5637_CMD_ADC_READ 0x00
-    #define MS5647_CMD_CONV_D1_256 0x40 //Uncompensated Pressure 24 bits
+    #define MS5637_CMD_CONV_D1_256 0x40 //Uncompensated Pressure 24 bits
     #define MS5637_CMD_CONV_D2_256 0x50 //Uncompensated Temperature 24 bits
     #define MS5637_CMD_PROM_READ 0xA0 //Or this with the next addresses
 
@@ -33,12 +33,12 @@
     #define MS5637_C6 0x06
     
 
-    void MS5637_READ_CALIBRATION(int16_t* buffer); //6 16bit ints
+    void MS5637_READ_CALIBRATION(uint16_t* buffer); //6 16bit ints
     void MS5637_START_CONVERSION(uint8_t COMMAND);
     uint32_t MS5637_READ_ADC(void);
     
     //Returns compensated data in PRESSURE_UNC and TEMP_UNC
-    void MS5637_CONV_METRIC(uint32_t PRESSURE_UNC, uint32_t TEMP_UNC, int16_t* CAL_DATA, int32_t* PRESSURE, int32_t* TEMP);
+    void MS5637_CONV_METRIC(uint32_t PRESSURE_UNC, uint32_t TEMP_UNC, uint16_t* CAL_DATA, int32_t* PRESSURE, int32_t* TEMP);
     
     
 

@@ -73,17 +73,21 @@ struct TIME {
 } local_time;
 
 int aerrno;
+uint16_t MSCAL[6];
 void UART_PUTVAR(const char* name, int namelen, int value);
 void RTC_INIT(void);
 void RTC_SNAPSHOT(struct TIME*);
 void RTC_ALARMSET(uint8_t);
 
 int16_t main(void) {
-    int x = 0;
-    uint8_t WHOMI = 0;
-    uint16_t RTC_REG;
-    int8_t sec;
-    int8_t min; 
+    //uint8_t WHOMI = 0;
+    uint32_t PRES = 0;
+    uint32_t TEMP = 0;
+    int32_t MET_PRES = 0;
+    int32_t MET_TEMP = 0;
+    //uint16_t RTC_REG;
+    //int8_t sec;
+    //int8_t min;
     //long x = 0;
     //CHECK IF DPSLP IS SET AND DO DIFFERENT THINGS!
 
@@ -108,8 +112,8 @@ int16_t main(void) {
     //UART1PutChar('S');
     
     //RTC_INIT();
-    //TRISFbits.TRISF0 = 0; //Set F0 as output (MS5VCC)
-    TRISDbits.TRISD9 = 0;
+    TRISFbits.TRISF0 = 0; //Set F0 as output (MS5VCC)
+    TRISDbits.TRISD9 = 0; // ULED
     TRISDbits.TRISD6 = 0; //Set D6 as output (MPUVCC)
     //TRISDbits.TRISD3 = 0; TRISDbits.TRISD2 = 0;
     //RTC_ALARMSET(1);
@@ -119,27 +123,29 @@ int16_t main(void) {
     //LATDbits.LATD0 = 1;
     //delay(30000);
     //LATDbits.LATD0 = 0;
-    //LATFbits.LATF0 = 1; //Turn on MS5637 Pressure sensor
 
     //LATDbits.LATD9 = 1; //LED
     
     LATDbits.LATD6 = 1; //Turn on accelerometer
-    i2c_write(MPU9150_ADDRESS, MPU9150_PWR_MGMT_1, 0x01);
-
+    LATFbits.LATF0 = 1; //Turn on MS5637 Pressure sensor
+    //i2c_write(MPU9150_ADDRESS, MPU9150_PWR_MGMT_1, 0x01);
+    MS5637_START_CONVERSION(MS5647_RESET);
     while(1) {
-        WHOMI = i2c_read_reg(MPU9150_ADDRESS, MPU9150_WHO_AM_I);
-        if(WHOMI != 0x68) {
-            LATDbits.LATD9 = 1; //turn on LED
-        } else {
-            LATDbits.LATD9 = 0;
-        }
+        //WHOMI = i2c_read_reg(MPU9150_ADDRESS, MPU9150_WHO_AM_I);
+        MS5637_READ_CALIBRATION(MSCAL); //dont have to do this every time
+        MS5637_START_CONVERSION(MS5637_CMD_CONV_D1_256);
         delay_us_3(10000);
         delay_us_3(10000);
-        delay_us_3(10000);
-        delay_us_3(10000);
-        delay_us_3(10000);
-        delay_us_3(10000);
+        PRES = MS5637_READ_ADC();
 
+        MS5637_START_CONVERSION(MS5637_CMD_CONV_D2_256);
+        delay_us_3(10000);
+        delay_us_3(10000);
+        TEMP = MS5637_READ_ADC();
+        
+        MS5637_CONV_METRIC(PRES , TEMP, MSCAL,&MET_PRES, &MET_TEMP);
+        Nop();
+        PRES = 0;
 
         //x = ADCSample();
         //UART_PUTVAR("ADC", 3, ((x*3300) / 1024));
