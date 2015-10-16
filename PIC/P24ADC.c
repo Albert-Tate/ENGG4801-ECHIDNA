@@ -4,14 +4,12 @@
 #include "adc.h"
 //#include <p24Fxxxx.h>
 
-//declare variables
-unsigned int voltage;
 
 //init function
 void ADC_init(void)
 {
 
-    TRISBbits.TRISB2 = 0b1;  // set pin as input (Analog2)
+    TRISBbits.TRISB2 = 0b1;  // set pin as input (Analog2) Light sensor
     ANSBbits.ANSB2 = 0b1;  // set pin as analog
     
     AD1CON1 = (0b1 << 13) |  (0b00 << 8) ; // set v+ reference to Vdd
@@ -47,7 +45,7 @@ int ADCSample(void)
     AD1CON1bits.ADON     = 0b1;  // turn on the ADC
     
     AD1CON1bits.SAMP = 1;
-    delay_us_3(1000); //Sample and hold
+    delay_us_3(5000); //Sample and hold ~ 4ms
     AD1CON1bits.SAMP = 0;
 
     while (!AD1CON1bits.DONE);

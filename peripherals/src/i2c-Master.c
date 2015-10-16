@@ -120,6 +120,7 @@ i2c_send_byte(int data)
         //reset_i2c_bus(); //causes us to  then timeout on receive?
         return(1);
     }
+    
     delay_us_3(1);
     return (0);
 }
@@ -194,6 +195,7 @@ i2c_read_reg(char addr, char subaddr)
    return temp;
 }
 
+//returns 1 on fail
 char
 i2c_poll(char addr)
 {

@@ -13,14 +13,11 @@
 
     //I2C address depends on physical pin wiring (7 bits)
 //#define AD0 1
-    #ifdef AD0
-        #define MPU9150_ADDRESS 0b1101001
-    #else   
-        #define MPU9150_ADDRESS 0b1101000
-    #endif
+    //AD0 is pulled to ground atm
+    #define MPU9150_ADDRESS 0b11010000
     
     #define MPU9150_ON command_set_gpio
-    #define MPU9150_OFF command_reset_gpio //obv need a better title
+    #define MPU9150_OFF command_reset_gpio 
     
     //I2C LSB for command type
     #define MPU9150_WRITE 0x00

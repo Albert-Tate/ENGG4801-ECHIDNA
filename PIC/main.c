@@ -73,7 +73,7 @@ struct TIME {
 } local_time;
 
 int aerrno;
-uint16_t MSCAL[6];
+//int16_t MSCAL[6];
 void UART_PUTVAR(const char* name, int namelen, int value);
 void RTC_INIT(void);
 void RTC_SNAPSHOT(struct TIME*);
@@ -81,15 +81,15 @@ void RTC_ALARMSET(uint8_t);
 
 int16_t main(void) {
     //uint8_t WHOMI = 0;
-    uint32_t PRES = 0;
-    uint32_t TEMP = 0;
-    int32_t MET_PRES = 0;
-    int32_t MET_TEMP = 0;
+    int x = 0, xl = 0;
+    int16_t res = 0;
     //uint16_t RTC_REG;
     //int8_t sec;
     //int8_t min;
-    //long x = 0;
-    //CHECK IF DPSLP IS SET AND DO DIFFERENT THINGS!
+/*           uint32_t PRES = 0;
+           uint32_t TEMP = 0;
+           int32_t MET_PRES = 0;
+           int32_t MET_TEMP = 0;*/
 
     aerrno = ERR_OK; /*global error var*/
     
@@ -114,11 +114,12 @@ int16_t main(void) {
     //RTC_INIT();
     TRISFbits.TRISF0 = 0; //Set F0 as output (MS5VCC)
     TRISDbits.TRISD9 = 0; // ULED
-    TRISDbits.TRISD6 = 0; //Set D6 as output (MPUVCC)
+    TRISDbits.TRISD6 = 0; //set MPU pin as output
+    TRISDbits.TRISD7 = 0; //set light alog pin as output
     //TRISDbits.TRISD3 = 0; TRISDbits.TRISD2 = 0;
     //RTC_ALARMSET(1);
     //ADC_init();
-    i2c_init(157); //100kHz. See data sheet
+    i2c_init(157); //100kHz. See data sheet 157
     //i2c_init(357);
     //LATDbits.LATD0 = 1;
     //delay(30000);
@@ -127,12 +128,32 @@ int16_t main(void) {
     //LATDbits.LATD9 = 1; //LED
     
     LATDbits.LATD6 = 1; //Turn on accelerometer
-    LATFbits.LATF0 = 1; //Turn on MS5637 Pressure sensor
+    LATFbits.LATF0 = 1;
+    delay_us_3(10);
     //i2c_write(MPU9150_ADDRESS, MPU9150_PWR_MGMT_1, 0x01);
-    MS5637_START_CONVERSION(MS5647_RESET);
+    //MS5637_START_CONVERSION(MS5647_RESET);
     while(1) {
         //WHOMI = i2c_read_reg(MPU9150_ADDRESS, MPU9150_WHO_AM_I);
-        MS5637_READ_CALIBRATION(MSCAL); //dont have to do this every time
+
+        if(i2c_poll(MPU9150_ADDRESS)) {  //MPU9150_ADDRESS
+            LATDbits.LATD9 = 0;
+        } else {
+            aerrno = ERR_OK;
+            LATDbits.LATD9 = 0;
+            //MPU9150_write_byte(MPU9150_PWR_MGMT_1, 0);
+            MPU9150_init();
+            Nop();
+            x = MPU9150_read_byte(MPU9150_ACCEL_XOUT_H);
+            xl = MPU9150_read_byte(MPU9150_ACCEL_XOUT_L);
+            res = xl | (((int16_t)x) << 8);
+            Nop();
+            if(x == 0x68) {
+                LATDbits.LATD9 = 1;
+            }
+        }
+        Nop();
+
+        /*MS5637_READ_CALIBRATION(MSCAL); //dont have to do this every time
         MS5637_START_CONVERSION(MS5637_CMD_CONV_D1_256);
         delay_us_3(10000);
         delay_us_3(10000);
@@ -142,12 +163,18 @@ int16_t main(void) {
         delay_us_3(10000);
         delay_us_3(10000);
         TEMP = MS5637_READ_ADC();
-        
-        MS5637_CONV_METRIC(PRES , TEMP, MSCAL,&MET_PRES, &MET_TEMP);
-        Nop();
-        PRES = 0;
 
-        //x = ADCSample();
+        MS5637_CONV_METRIC(PRES , TEMP, MSCAL,&MET_PRES, &MET_TEMP);
+        Nop(); */
+/*        LATDbits.LATD7 = 1;
+        delay_us_3(5000); //4ms
+        x = ADCSample();
+        LATDbits.LATD7 = 0;
+        delay_us_3(10000);
+        if (x > 0) {
+            Nop();
+            LATDbits.LATD9 = 1;
+        } */
         //UART_PUTVAR("ADC", 3, ((x*3300) / 1024));
         //i2c_command(MS5637_ADDR,  MS5647_RESET);
         /*RTC_SNAPSHOT(&local_time);

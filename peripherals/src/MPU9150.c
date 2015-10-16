@@ -7,7 +7,7 @@
 
 #include "stdint.h"
 #include "I2C.h"
-#include "../inc/i2c-Master.h"
+//#include "../inc/i2c-Master.h"
 #include "../inc/MPU9150.h" //I blame MPLABX Entirely
     
 //Start -> TX 8 bits(ADDR) -> ACK -> More Bytes -> Ack etc -> STOP
@@ -21,6 +21,17 @@ MPU9150_init(void)
     //i2c_send_byte(MPU9150_ADDRESS);
     //i2c_send_byte(MPU9150_WRITE | MPU9150_CONFIG);
     //i2c_send_byte(0x02);
+
+    //MUST BE FIRST COMMAND ISSUED TO MPU. Why? black magic
+    //PWR_MGMT_1 => CLKSEL = 0 (int 8MHz), SLEEP = 0, TEMP_DIS = 0 (enable temp sensor)
+    MPU9150_write_byte(MPU9150_PWR_MGMT_1, 0x00);
+
+    //disable i2c passthrough
+    MPU9150_write_byte(MPU9150_INT_PIN_CFG, 0x00);
+
+    //disable i2c master
+    MPU9150_write_byte(MPU9150_USER_CTRL, 0x00);
+
     MPU9150_write_byte(MPU9150_CONFIG, 0x02);
         
     //SMPRT_DIV => 9 (sample rate then 1k/(1+9) = 100 Hz
@@ -32,23 +43,39 @@ MPU9150_init(void)
     //FIFO_EN => 0x00 (don't use FIFO)
     MPU9150_write_byte(MPU9150_FIFO_EN, 0x00);
 
-    //PWR_MGMT_1 => CLKSEL = 0 (int 8MHz), SLEEP = 0, TEMP_DIS = 0 (enable temp sensor)
-    MPU9150_write_byte(MPU9150_PWR_MGMT_1, 0x00);
-
-    //PWR_MGMT_2 => 0x07 (disable gyro, keep everything else)
+    //PWR_MGMT_2 => 0x07 (disable gyro, keep everything else) for power
     MPU9150_write_byte(MPU9150_PWR_MGMT_2, 0x07);
 }
     
 uint8_t
 MPU9150_read_byte(uint8_t addr)
 {
-	return 0;
+    uint8_t byte;
+
+    i2c_start();
+    i2c_send_byte(MPU9150_ADDRESS | MPU9150_WRITE);
+    i2c_send_byte(addr);
+    //reset_i2c_bus();
+    //Datasheet says no stop
+
+    i2c_start();
+    i2c_send_byte(MPU9150_ADDRESS | MPU9150_READ);
+    
+    byte = i2c_read();
+    reset_i2c_bus();
+
+    return byte;
 }
 
 void
 MPU9150_write_byte(uint8_t addr, uint8_t byte)
 {
-	return;
+    i2c_start();
+    i2c_send_byte(MPU9150_ADDRESS | MPU9150_WRITE);
+    i2c_send_byte(addr);
+    i2c_send_byte(byte);
+    reset_i2c_bus();
+    return;
 }
     
 void
@@ -66,7 +93,7 @@ MPU9150_write_buffer(uint8_t addr, uint8_t* buff, uint8_t len)
 void
 MPU9150_read_ACC(int16_t* buff)
 {
-        MPU9150_read_buffer(MPU9150_ACCEL_XOUT_H, buff, 6);
+        //MPU9150_read_buffer(MPU9150_ACCEL_XOUT_H, buff, 6);
         return;
 }
 void
