@@ -16,8 +16,10 @@
     //AD0 is pulled to ground atm
     #define MPU9150_ADDRESS 0b11010000
     
-    #define MPU9150_ON command_set_gpio
-    #define MPU9150_OFF command_reset_gpio 
+    #define MPU9150_ON LATDbits.LATD6 = 1
+    #define MPU9150_OFF LATDbits.LATD6 = 0
+
+    #define MPU9150_INIT_PIN TRISDbits.TRISD6 = 0
     
     //I2C LSB for command type
     #define MPU9150_WRITE 0x00
@@ -42,9 +44,10 @@
     void MPU9150_write_buffer(uint8_t addr, uint8_t* buff, uint8_t len);
     
     //Buffer must have enough memory for 3 16 bit numbers
-    void MPU9150_read_ACC(int16_t* buff);
-    void MPU9150_read_GYRO(int16_t* buff);
+    void MPU9150_read_ACC(int16_t* X, int16_t* Y, int16_t* Z);
+    void MPU9150_read_GYRO(int16_t* X, int16_t* Y, int16_t* Z);
     int16_t MPU9150_read_TEMP(void); //Temp/340 + 35 to get actual value
+    int16_t MPU9150_convert_TEMP(int16_t TEMP);
     
     void MPU9150_sleep(void);
     void MPU9150_wake(void);

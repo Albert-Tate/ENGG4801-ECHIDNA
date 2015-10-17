@@ -63,6 +63,11 @@
                          asm volatile("BSET DSCON, #DSEN"); \
                          asm volatile("PWRSAV, #0x0000");
 
+#define MAX17040_ADDRESS 0b01101100
+
+#define LED_ON LATDbits.LATD9 = 1;
+#define LED_OFF LATDbits.LATD9 = 0;
+
 struct TIME {
     uint8_t sec;
     uint8_t min;
@@ -72,90 +77,97 @@ struct TIME {
     uint8_t year;
 } local_time;
 
-int aerrno;
-//int16_t MSCAL[6];
+#define MAX_MEASURE 20
+struct MEASUREMENT {
+    //MS5637
+    int32_t TEMPERATURE;
+    int32_t PRESSURE;
+    //Accelerometery
+    int16_t X_ACC;
+    int16_t Y_ACC;
+    int16_t Z_ACC;
+    //Light sensor
+    uint16_t LALOG;
+    //Time
+    uint8_t day; //0-255 (I wish)
+    uint8_t hour; //lots of bad values could happen here
+    uint8_t minute;
+    uint8_t second;
+    //TOTAL 160 bit (1Mbit = 2^20, 2^20/144 = 7281 across 2 thingys = 14652 = 4 hours of sampling at 1hz. pretty neato
+    //Debug: Battery remaining (0-10 000)
+    //int16_t BATT;
+    //now 172 bit
+} measure[MAX_MEASURE];
+
+
+
 void UART_PUTVAR(const char* name, int namelen, int value);
 void RTC_INIT(void);
 void RTC_SNAPSHOT(struct TIME*);
 void RTC_ALARMSET(uint8_t);
+uint16_t MAX17040_SOC(void);
+uint16_t MAX17040_VDD(void);
+
+int aerrno;
+int meas_index = 0;
+int BATT_SOC = 1000;
+uint16_t MSCAL[6];
+uint32_t PRES = 0;
+uint32_t TEMP = 0;
 
 int16_t main(void) {
-    //uint8_t WHOMI = 0;
-    int x = 0, xl = 0;
-    int16_t res = 0;
-    //uint16_t RTC_REG;
-    //int8_t sec;
-    //int8_t min;
-/*           uint32_t PRES = 0;
-           uint32_t TEMP = 0;
-           int32_t MET_PRES = 0;
-           int32_t MET_TEMP = 0;*/
 
     aerrno = ERR_OK; /*global error var*/
     
-    //int pulsemsg = 0;
     /* Configure the oscillator for the device */
     ConfigureOscillator();
 
-    /*__builtin_write_OSCCONL(OSCCON & ~0x40);
+    //setup remappable peripherals
+    __builtin_write_OSCCONL(OSCCON & ~0x40);
             //SPI
-    SPI1CLK = 8; //Good luck
+    SPI1CLK = 8; //Good luck Matches altium 
     SPI1MOSI = 7;
     _SDI1R = 24; //wtf input 24r
             //UART
     UART_TX = 3; //D10
     _U1RXR = 11; //D11
-    __builtin_write_OSCCONL(OSCCON | 0x40); */
+    __builtin_write_OSCCONL(OSCCON | 0x40); 
+
 
     //spi1Init(0);
     //UART1Init(6); //Gives 142000 Baud rate. Clock at approx 20Mhz (10mHz FCY)
-    //UART1PutChar('S');
     
-    //RTC_INIT();
-    TRISFbits.TRISF0 = 0; //Set F0 as output (MS5VCC)
-    TRISDbits.TRISD9 = 0; // ULED
-    TRISDbits.TRISD6 = 0; //set MPU pin as output
-    TRISDbits.TRISD7 = 0; //set light alog pin as output
-    //TRISDbits.TRISD3 = 0; TRISDbits.TRISD2 = 0;
-    //RTC_ALARMSET(1);
-    //ADC_init();
+    RTC_INIT();
     i2c_init(157); //100kHz. See data sheet 157
-    //i2c_init(357);
-    //LATDbits.LATD0 = 1;
-    //delay(30000);
-    //LATDbits.LATD0 = 0;
+    ADC_init();
 
-    //LATDbits.LATD9 = 1; //LED
+    MS5637_INIT_PIN; //Set F0 as output (MS5VCC)
+    MPU9150_INIT_PIN; //Set D6 as output (MPU9150)
+    TRISDbits.TRISD9 = 0; // ULED
+    TRISDbits.TRISD7 = 0; //set photosensor power pin as output
+
+    MS5637_ON;
+    delay_us_3(1000);
+    MS5637_READ_CALIBRATION(MSCAL);
+
+    RTC_ALARMSET(1); //every second, see pg 280 "ALCFGRPT" register. NOT 1:1
     
-    LATDbits.LATD6 = 1; //Turn on accelerometer
-    LATFbits.LATF0 = 1;
-    delay_us_3(10);
-    //i2c_write(MPU9150_ADDRESS, MPU9150_PWR_MGMT_1, 0x01);
-    //MS5637_START_CONVERSION(MS5647_RESET);
     while(1) {
-        //WHOMI = i2c_read_reg(MPU9150_ADDRESS, MPU9150_WHO_AM_I);
+        MS5637_OFF;
+        MPU9150_OFF;
+        LATDbits.LATD7 = 0;
 
-        if(i2c_poll(MPU9150_ADDRESS)) {  //MPU9150_ADDRESS
-            LATDbits.LATD9 = 0;
-        } else {
-            aerrno = ERR_OK;
-            LATDbits.LATD9 = 0;
-            //MPU9150_write_byte(MPU9150_PWR_MGMT_1, 0);
-            MPU9150_init();
-            Nop();
-            x = MPU9150_read_byte(MPU9150_ACCEL_XOUT_H);
-            xl = MPU9150_read_byte(MPU9150_ACCEL_XOUT_L);
-            res = xl | (((int16_t)x) << 8);
-            Nop();
-            if(x == 0x68) {
-                LATDbits.LATD9 = 1;
-            }
+        //Pressure sensor
+        MS5637_ON;
+        MPU9150_ON;
+        delay_us_3(100);
+        if (MSCAL[0] == 0 || MSCAL[0] == 0xFFFF) {
+            MS5637_READ_CALIBRATION(MSCAL);
+            if (aerrno) aerrno = ERR_OK;
         }
-        Nop();
-
-        /*MS5637_READ_CALIBRATION(MSCAL); //dont have to do this every time
+        
         MS5637_START_CONVERSION(MS5637_CMD_CONV_D1_256);
-        delay_us_3(10000);
+        delay_us_3(10000); //fine tune these
         delay_us_3(10000);
         PRES = MS5637_READ_ADC();
 
@@ -164,53 +176,51 @@ int16_t main(void) {
         delay_us_3(10000);
         TEMP = MS5637_READ_ADC();
 
-        MS5637_CONV_METRIC(PRES , TEMP, MSCAL,&MET_PRES, &MET_TEMP);
-        Nop(); */
-/*        LATDbits.LATD7 = 1;
-        delay_us_3(5000); //4ms
-        x = ADCSample();
-        LATDbits.LATD7 = 0;
-        delay_us_3(10000);
-        if (x > 0) {
-            Nop();
-            LATDbits.LATD9 = 1;
-        } */
-        //UART_PUTVAR("ADC", 3, ((x*3300) / 1024));
-        //i2c_command(MS5637_ADDR,  MS5647_RESET);
-        /*RTC_SNAPSHOT(&local_time);
-        UART_PUTVAR("yr", 2, local_time.year);
-        UART_PUTVAR("mon", 3, local_time.month);
-        UART_PUTVAR("day", 3, local_time.day);
-        UART_PUTVAR("hr", 2, local_time.hr);
-        UART_PUTVAR("min", 3, local_time.min);
-        UART_PUTVAR("sec", 3, local_time.sec);
-        UART1PutChar('\n');*/
-        //ENTER_SLEEP;
-        //delay(1000);
-        //LATDbits.LATD0 = 1;
-        //delay(1000);
-        //LATDbits.LATD0 = 0;
-        //WHOMI = i2c_read_reg(0b11101100, 0b10100110);
-        /*if (WHOMI != 0x68) {
-            ;//LATDbits.LATD0 = 1;
-        }
-        if (aerrno != ERR_OK) {
-            for(pulsemsg = 0; pulsemsg < aerrno; pulsemsg++) {
-                LATDbits.LATD0 = 1;
-                delay(15);
-                LATDbits.LATD0 = 0;
-                delay(15);
-            }
-            delay(1000);
-            aerrno = ERR_OK;
-        }*/
-        //delay(1000);
+        MS5637_CONV_METRIC(PRES , TEMP, MSCAL, 
+                &measure[meas_index].PRESSURE,
+                &measure[meas_index].TEMPERATURE);
         
-        /*LATDbits.LATD0 = 1;
-        delay(1000);
-        LATDbits.LATD0 = 0;
-        delay(1000);*/
+        MPU9150_init();
+        //Now give MPU time to stabilise
 
+        delay_us_3(100000);
+        delay_us_3(100000);
+
+        MPU9150_read_ACC(&(measure[meas_index].X_ACC),
+                         &(measure[meas_index].Y_ACC),
+                         &(measure[meas_index].Z_ACC));
+        //dont bother with mputemp, less accurate and I don't want to kalman
+
+        MPU9150_OFF;
+        MS5637_OFF; //This needs to be on for MPU9150 to work, silicon bug
+
+        LATDbits.LATD7 = 1;
+        delay_us_3(5000); //4ms
+        measure[meas_index].LALOG = ADCSample();
+        LATDbits.LATD7 = 0;
+
+        BATT_SOC = MAX17040_SOC();
+        if(aerrno) {
+            BATT_SOC = -1; //Unknown battery state
+        }
+
+        //load date, time etc
+        RTC_SNAPSHOT(&local_time);
+        measure[meas_index].day = local_time.day;
+        measure[meas_index].hour = local_time.hr;
+        measure[meas_index].minute = local_time.min;
+        measure[meas_index].second = local_time.sec;
+
+        meas_index++;
+        if(meas_index > MAX_MEASURE) {
+            meas_index = 0;
+        }
+
+        Nop();
+        /*LED_ON;
+        delay_us_3(1000);
+        LED_OFF;*/
+        ENTER_SLEEP;
     }
 }
 
@@ -294,4 +304,39 @@ RTC_INIT(void)
     RCFGCAL = 0b1 << 15 | 0b1 << 13;
 
     _RTCWREN = 0;
+}
+
+
+uint16_t
+MAX17040_SOC(void)
+{
+    uint8_t low, high;
+    i2c_start();
+    i2c_send_byte(MAX17040_ADDRESS | 0x00);
+    i2c_send_byte(0x04); //SOC register 0x04
+
+    i2c_start();
+    i2c_send_byte(MAX17040_ADDRESS | 0x01);
+    high = i2c_read_ack();
+    low = i2c_read();
+    reset_i2c_bus();
+
+    return ((uint16_t)high << 8) | low;
+}
+
+uint16_t
+MAX17040_VDD(void)
+{
+    uint8_t low, high;
+    i2c_start();
+    i2c_send_byte(MAX17040_ADDRESS | 0x00);
+    i2c_send_byte(0x02); //SOC register
+
+    i2c_start();
+    i2c_send_byte(MAX17040_ADDRESS | 0x01);
+    high = i2c_read_ack();
+    low = i2c_read();
+    reset_i2c_bus();
+
+    return ((uint16_t)high << 8) | low;
 }

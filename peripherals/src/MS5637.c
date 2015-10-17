@@ -5,7 +5,10 @@
  *  Date: 17/05/15
  **********************************************************/
 #include "stdint.h"
+#include "../../PIC/system.h"
 #include "../inc/MS5637.h"
+//#include "../inc/i2c-Master.h" //Only works when implicitly called.
+//Literally no one on earth can describe this
 #include "I2C.h"
 
 void MS5637_READ_CALIBRATION(uint16_t* buffer){ //6 16bit ints

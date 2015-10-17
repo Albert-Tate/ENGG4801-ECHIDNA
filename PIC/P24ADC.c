@@ -51,6 +51,6 @@ int ADCSample(void)
     while (!AD1CON1bits.DONE);
     retval = ADC1BUF0;
 
-    //AD1CON1bits.ADON     = 0;
+    AD1CON1bits.ADON     = 0;
     return retval;
 }

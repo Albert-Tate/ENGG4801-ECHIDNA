@@ -157,13 +157,14 @@
 /******************************************************************************/
 
 /* TODO Add interrupt routine code here. */
-
+#define LED_ON LATDbits.LATD9 = 1;
+#define LED_OFF LATDbits.LATD9 = 0;
 void __attribute__((interrupt,auto_psv)) _RTCCInterrupt(void)
 {
     //Clear flag
     IFS3bits.RTCIF = 0;
 
-    LATDbits.LATD0 = 1;
+    LED_ON;
     delay(1000);
-    LATDbits.LATD0 = 0;
+    LED_OFF;
 }

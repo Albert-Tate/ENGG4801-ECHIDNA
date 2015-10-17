@@ -7,7 +7,8 @@
 
 #include "stdint.h"
 #include "I2C.h"
-//#include "../inc/i2c-Master.h"
+//#include "../inc/i2c-Master.h" //Only works when implicitly called.
+//Literally no one on earth can describe this
 #include "../inc/MPU9150.h" //I blame MPLABX Entirely
     
 //Start -> TX 8 bits(ADDR) -> ACK -> More Bytes -> Ack etc -> STOP
@@ -32,6 +33,7 @@ MPU9150_init(void)
     //disable i2c master
     MPU9150_write_byte(MPU9150_USER_CTRL, 0x00);
 
+    //Enable black magic
     MPU9150_write_byte(MPU9150_CONFIG, 0x02);
         
     //SMPRT_DIV => 9 (sample rate then 1k/(1+9) = 100 Hz
@@ -91,13 +93,18 @@ MPU9150_write_buffer(uint8_t addr, uint8_t* buff, uint8_t len)
     
 //Buffer must have enough memory for 3 16 bit numbers
 void
-MPU9150_read_ACC(int16_t* buff)
+MPU9150_read_ACC(int16_t* X, int16_t* Y, int16_t* Z)
 {
-        //MPU9150_read_buffer(MPU9150_ACCEL_XOUT_H, buff, 6);
+        *X =  MPU9150_read_byte(MPU9150_ACCEL_XOUT_L) |
+                (((int16_t)MPU9150_read_byte(MPU9150_ACCEL_XOUT_H)) << 8);
+        *Y =  MPU9150_read_byte(MPU9150_ACCEL_YOUT_L) | 
+                (((int16_t)MPU9150_read_byte(MPU9150_ACCEL_YOUT_H)) << 8);
+        *Z =  MPU9150_read_byte(MPU9150_ACCEL_ZOUT_L) |
+                (((int16_t)MPU9150_read_byte(MPU9150_ACCEL_ZOUT_H)) << 8);
         return;
 }
 void
-MPU9150_read_GYRO(int16_t* buff)
+MPU9150_read_GYRO(int16_t* X, int16_t* Y, int16_t* Z)
 {
 	return;
 }
@@ -105,7 +112,15 @@ MPU9150_read_GYRO(int16_t* buff)
 int16_t
 MPU9150_read_TEMP(void)
 { //Temp/340 + 35 to get actual value
-    return 0;
+
+    return MPU9150_read_byte(MPU9150_TEMP_OUT_L) |
+                (((int16_t)MPU9150_read_byte(MPU9150_TEMP_OUT_H)) << 8);
+}
+
+int16_t
+MPU9150_convert_TEMP(int16_t TEMP)
+{
+    return (int16_t) (((float)(TEMP/340)) + 35);
 }
 
 void
