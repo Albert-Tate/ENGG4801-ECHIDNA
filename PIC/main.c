@@ -31,6 +31,7 @@
 
 #include "../peripherals/inc/MPU9150.h"
 #include "../peripherals/inc/MS5637.h"
+#include "../peripherals/inc/23LCV1024.h"
 
 /******************************************************************************/
 /* Global Variable Declaration                                                */
@@ -77,7 +78,7 @@ struct TIME {
     uint8_t year;
 } local_time;
 
-#define MAX_MEASURE 20
+#define MAX_MEASURE 3
 struct MEASUREMENT {
     //MS5637
     int32_t TEMPERATURE;
@@ -105,11 +106,13 @@ void UART_PUTVAR(const char* name, int namelen, int value);
 void RTC_INIT(void);
 void RTC_SNAPSHOT(struct TIME*);
 void RTC_ALARMSET(uint8_t);
+void RTC_ALARMOFF(void);
 uint16_t MAX17040_SOC(void);
 uint16_t MAX17040_VDD(void);
 
 int aerrno;
 int meas_index = 0;
+int mem_pointer = 0;
 int BATT_SOC = 1000;
 uint16_t MSCAL[6];
 uint32_t PRES = 0;
@@ -118,6 +121,10 @@ uint32_t TEMP = 0;
 int16_t main(void) {
 
     aerrno = ERR_OK; /*global error var*/
+/*    int before1, before2, before3,after1,after2,after3;
+    before1 = 0xAC;
+    before2 = 0xF1;
+    before3 = 0xB3;*/
     
     /* Configure the oscillator for the device */
     ConfigureOscillator();
@@ -134,7 +141,7 @@ int16_t main(void) {
     __builtin_write_OSCCONL(OSCCON | 0x40); 
 
 
-    //spi1Init(0);
+    spi1Init(0);
     //UART1Init(6); //Gives 142000 Baud rate. Clock at approx 20Mhz (10mHz FCY)
     
     RTC_INIT();
@@ -146,6 +153,11 @@ int16_t main(void) {
     TRISDbits.TRISD9 = 0; // ULED
     TRISDbits.TRISD7 = 0; //set photosensor power pin as output
 
+    TRISGbits.TRISG2 = 0; //Mem1
+    TRISGbits.TRISG3 = 0; //Mem2
+    LATGbits.LATG2 = 1; //CS high
+    LATGbits.LATG3 = 1; //CS high
+
     MS5637_ON;
     delay_us_3(1000);
     MS5637_READ_CALIBRATION(MSCAL);
@@ -156,6 +168,32 @@ int16_t main(void) {
         MS5637_OFF;
         MPU9150_OFF;
         LATDbits.LATD7 = 0;
+
+
+/*        LATGbits.LATG2 = 0; //Pull CS low
+        //write before to pos 0
+        spiWrite(0, 0x02); //Write command
+        spiWrite(0, 0x00); //Addr MSB
+        spiWrite(0, 0x00); //Addr middle
+        spiWrite(0, 0x00); //Addr LSB
+        spiWrite(0, before1);
+        spiWrite(0, before2);
+        spiWrite(0, before3);
+        LATGbits.LATG2 = 1;
+
+        delay_us_3(10000);
+
+        //Read pos 0 to after
+        LATGbits.LATG2 = 0; //Pull CS low
+        //read before from pos 0
+        spiWrite(0, 0x03); //read command
+        spiWrite(0, 0x00); //Addr MSB
+        spiWrite(0, 0x00); //Addr middle
+        spiWrite(0, 0x00); //Addr LSB
+        after1 = spiWrite(0, 0xFF);
+        after2 = spiWrite(0, 0xFF);
+        after3 = spiWrite(0, 0xFF);
+        LATGbits.LATG2 = 1;*/
 
         //Pressure sensor
         MS5637_ON;
@@ -183,8 +221,8 @@ int16_t main(void) {
         MPU9150_init();
         //Now give MPU time to stabilise
 
-        delay_us_3(100000);
-        delay_us_3(100000);
+        delay_us_3(65535);
+        delay_us_3(65535);
 
         MPU9150_read_ACC(&(measure[meas_index].X_ACC),
                          &(measure[meas_index].Y_ACC),
@@ -212,14 +250,70 @@ int16_t main(void) {
         measure[meas_index].second = local_time.sec;
 
         meas_index++;
-        if(meas_index > MAX_MEASURE) {
+        /*
+         If we have all measurements we can fit locally:
+         Attempt to write to SRAM
+         If no room on either SRAM, write to SD Card
+         */
+        if(meas_index == MAX_MEASURE) {
+            uint32_t i;
+            RTC_ALARMOFF(); //No interruptions while this happens
+
+            //Think harder about what happens near the limits of size
+            if(meas_index + mem_pointer > EXT_MEM_SIZE) {
+                //write to device 1
+                for(i = 0; i < meas_index; i++) {
+                    EXT_MEM_write_buffer(0, mem_pointer, sizeof(struct MEASUREMENT),
+                            (uint8_t*)&(measure[i]));
+                    mem_pointer += sizeof(struct MEASUREMENT);
+                }
+            } else if(meas_index + mem_pointer < 2*EXT_MEM_SIZE) {
+                for(i = 0; i < meas_index; i++) {
+                    EXT_MEM_write_buffer(1, mem_pointer - EXT_MEM_SIZE, sizeof(struct MEASUREMENT),
+                            (uint8_t*)&(measure[i]));
+                    mem_pointer += sizeof(struct MEASUREMENT);
+                }
+            } else {
+                uint64_t j;
+                //SD CARD
+                /*EXT_MEM_SIZE/sizeof(struct MEASUREMENT) = Number of measure
+                  structs that fit inside this bad boy
+                 measstructno/MAX_MEASURE = how many times we have to fill
+                 measure struct array*/
+
+                //Read structs in from mem1, cpy to SD CARD
+                for(j = 0;
+                     j < (EXT_MEM_SIZE/sizeof(struct MEASUREMENT)/MAX_MEASURE);
+                     j++) {
+                    for(i = 0; i < MAX_MEASURE; i++) {
+                        EXT_MEM_read_buffer(0, i + j*MAX_MEASURE,
+                                sizeof(struct MEASUREMENT),
+                                (uint8_t*)&(measure[i]));
+                    }
+                    for(i = 0; i < MAX_MEASURE; i++) {
+                        Nop(); //WRITE TO SD CARD!!!!!!
+                    }
+                }
+                //Read structs in from mem2, cpy to SD CARD
+                for(j = 0;
+                     j < (EXT_MEM_SIZE/sizeof(struct MEASUREMENT)/MAX_MEASURE);
+                     j++) {
+                    for(i = 0; i < MAX_MEASURE; i++) {
+                        EXT_MEM_read_buffer(1, i + j*MAX_MEASURE,
+                                sizeof(struct MEASUREMENT),
+                                (uint8_t*)&(measure[i]));
+                    }
+                    for(i = 0; i < MAX_MEASURE; i++) {
+                        Nop(); //WRITE TO SD CARD!!!!!!
+                    }
+                }
+            }           
             meas_index = 0;
+            Nop();
+            Nop();
+            RTC_ALARMSET(1);
         }
 
-        Nop();
-        /*LED_ON;
-        delay_us_3(1000);
-        LED_OFF;*/
         ENTER_SLEEP;
     }
 }
@@ -278,6 +372,16 @@ RTC_ALARMSET(uint8_t interval)
     _RTCIF = 0;
     _RTCIE = 1; //Enable interrupts
     
+}
+
+void
+RTC_ALARMOFF(void)
+{
+    _ALRMEN = 0;
+    ALRMVAL = 0;
+    _ARPT = 0;
+    _CHIME = 0;
+
 }
 
 void
