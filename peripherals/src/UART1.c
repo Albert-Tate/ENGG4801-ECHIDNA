@@ -30,11 +30,13 @@ void UART1PutChar(char Ch)
 }
 
 //UART receive function, returns the value received.
-char UART1GetChar()
+char UART1GetChar(void)
 {
    char Temp;
    //wait for buffer to fill up, wait for interrupt
-   while(IFS0bits.U1RXIF == 0);
+   if(IFS0bits.U1RXIF == 0) {
+       return 0;
+   }
    Temp = U1RXREG;
    //reset interrupt
    IFS0bits.U1RXIF = 0;

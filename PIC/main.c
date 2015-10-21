@@ -33,6 +33,10 @@
 #include "../peripherals/inc/MS5637.h"
 #include "../peripherals/inc/23LCV1024.h"
 
+
+#include "../peripherals/ff11a/src/diskio.h"
+#include "../peripherals/ff11a/src/ff.h"
+
 /******************************************************************************/
 /* Global Variable Declaration                                                */
 /******************************************************************************/
@@ -51,7 +55,7 @@
 #define SPI1CLK RPOR11bits.RP22R
 #define SPI1MOSI RPOR11bits.RP23R
 #define UART_TX RPOR1bits.RP3R         //D10 = RP3
-#define UART_RX RPOR6bits.RP12R         //D11 = RP12
+#define UART_RX RPINR18bits.U1RXR         //D11 = RP12
 
 #define ENTER_SLEEP asm volatile("PWRSAV #0x0000");
 
@@ -69,6 +73,15 @@
 #define LED_ON LATDbits.LATD9 = 1;
 #define LED_OFF LATDbits.LATD9 = 0;
 
+#define SD_OFF    LATDbits.LATD8 = 1; //drive high (out low)
+#define SD_ON     LATDbits.LATD8 = 0;
+
+#define TIMER_START     T1CON = 0b1000000000000000;
+#define TIMER_END       T1CON = 0b0000000000000000;
+
+//#define SD_CARD 0x00 //enables SD card
+
+
 struct TIME {
     uint8_t sec;
     uint8_t min;
@@ -78,7 +91,7 @@ struct TIME {
     uint8_t year;
 } local_time;
 
-#define MAX_MEASURE 3
+#define MAX_MEASURE 60 //How many fit on device before we write to SRAM
 struct MEASUREMENT {
     //MS5637
     int32_t TEMPERATURE;
@@ -109,6 +122,12 @@ void RTC_ALARMSET(uint8_t);
 void RTC_ALARMOFF(void);
 uint16_t MAX17040_SOC(void);
 uint16_t MAX17040_VDD(void);
+void TimerInit(void);
+void init_ports(void);
+int UART_SEND_PACKET(void);
+
+//_timer interrupt for FatFS 1k/hz Found in mmc_pic24f.c
+void __attribute__((__interrupt__)) _T1Interrupt(void);
 
 int aerrno;
 int meas_index = 0;
@@ -118,31 +137,44 @@ uint16_t MSCAL[6];
 uint32_t PRES = 0;
 uint32_t TEMP = 0;
 
+FATFS FatFs; //Object for FAT storage
+FIL fil; //File object
+FRESULT fr; //FatFS return code
+FILINFO fno;
+
 int16_t main(void) {
+#ifdef SD_CARD
+    uint32_t temp = 0;
+#endif
+    int i = 0;
 
     aerrno = ERR_OK; /*global error var*/
-/*    int before1, before2, before3,after1,after2,after3;
-    before1 = 0xAC;
-    before2 = 0xF1;
-    before3 = 0xB3;*/
+
     
     /* Configure the oscillator for the device */
     ConfigureOscillator();
 
+    //Set all ports to output to minimise current leakage
+    //Any updated ports will be changed after this so no biggy
+    //Drive them low?
+    init_ports();
+    TRISDbits.TRISD11 = 1;
+    
     //setup remappable peripherals
     __builtin_write_OSCCONL(OSCCON & ~0x40);
             //SPI
     SPI1CLK = 8; //Good luck Matches altium 
     SPI1MOSI = 7;
-    _SDI1R = 24; //wtf input 24r
+    _SDI1R = 24;
             //UART
     UART_TX = 3; //D10
-    _U1RXR = 11; //D11
+    //UART_RX = 12; //d11 (RP12)
+    //_U1RXR = 11; //D11
+    RPINR18bits.U1RXR = 12;
+    
     __builtin_write_OSCCONL(OSCCON | 0x40); 
 
-
     spi1Init(0);
-    //UART1Init(6); //Gives 142000 Baud rate. Clock at approx 20Mhz (10mHz FCY)
     
     RTC_INIT();
     i2c_init(157); //100kHz. See data sheet 157
@@ -158,42 +190,60 @@ int16_t main(void) {
     LATGbits.LATG2 = 1; //CS high
     LATGbits.LATG3 = 1; //CS high
 
+    TRISDbits.TRISD8 = 0; //SD_CTL
+    TRISDbits.TRISD0 =  0; //SD_CS
+
+    LATDbits.LATD8 = 1; //drive high SD OFF
+    LATDbits.LATD0 = 1;
+
+    TimerInit();
+
     MS5637_ON;
     delay_us_3(1000);
     MS5637_READ_CALIBRATION(MSCAL);
+    MS5637_OFF;
 
     RTC_ALARMSET(1); //every second, see pg 280 "ALCFGRPT" register. NOT 1:1
+
+    for(i=0;i<10;i++) { //Flash LED to say we're on
+        LED_ON;
+        delay(1000);
+        LED_OFF;
+        delay(1000);
+    }
+
+#ifdef SD_CARD
+    TIMER_START;
+    SD_ON;	
+    disk_initialize(0);
+    fr = f_mount(&FatFs, "", 1);
+    if (fr !=  FR_OK) {
+        //Hold on LED, refuse to start
+        while(1) { LED_ON; }
+    }
+    fr = f_open(&fil, "a.bin", FA_WRITE | FA_OPEN_EXISTING);
+    if (fr == FR_NO_FILE) {
+        fr = f_open(&fil, "a.bin", FA_WRITE | FA_CREATE_NEW);
+    }
+    fr = f_write(&fil, (void*)MSCAL, (UINT)sizeof(MSCAL), (UINT*)&temp);
+    f_close(&fil);
+    TIMER_END;
+    SD_OFF;
+#else
+    UART1Init(6); //Gives 142000 Baud rate. Clock at approx 20Mhz (10mHz FCY)
+#endif
+ /*   while(1) {
+        UART1PutChar('F');
+        if(UART1GetChar()) {
+            UART1PutChar('G');
+            UART1PutChar('\n');
+        }
+    }*/
     
     while(1) {
         MS5637_OFF;
         MPU9150_OFF;
         LATDbits.LATD7 = 0;
-
-
-/*        LATGbits.LATG2 = 0; //Pull CS low
-        //write before to pos 0
-        spiWrite(0, 0x02); //Write command
-        spiWrite(0, 0x00); //Addr MSB
-        spiWrite(0, 0x00); //Addr middle
-        spiWrite(0, 0x00); //Addr LSB
-        spiWrite(0, before1);
-        spiWrite(0, before2);
-        spiWrite(0, before3);
-        LATGbits.LATG2 = 1;
-
-        delay_us_3(10000);
-
-        //Read pos 0 to after
-        LATGbits.LATG2 = 0; //Pull CS low
-        //read before from pos 0
-        spiWrite(0, 0x03); //read command
-        spiWrite(0, 0x00); //Addr MSB
-        spiWrite(0, 0x00); //Addr middle
-        spiWrite(0, 0x00); //Addr LSB
-        after1 = spiWrite(0, 0xFF);
-        after2 = spiWrite(0, 0xFF);
-        after3 = spiWrite(0, 0xFF);
-        LATGbits.LATG2 = 1;*/
 
         //Pressure sensor
         MS5637_ON;
@@ -250,6 +300,7 @@ int16_t main(void) {
         measure[meas_index].second = local_time.sec;
 
         meas_index++;
+        
         /*
          If we have all measurements we can fit locally:
          Attempt to write to SRAM
@@ -258,9 +309,10 @@ int16_t main(void) {
         if(meas_index == MAX_MEASURE) {
             uint32_t i;
             RTC_ALARMOFF(); //No interruptions while this happens
-
+            Nop();
+            Nop();
             //Think harder about what happens near the limits of size
-            if(meas_index + mem_pointer > EXT_MEM_SIZE) {
+            if(meas_index + mem_pointer < EXT_MEM_SIZE) {
                 //write to device 1
                 for(i = 0; i < meas_index; i++) {
                     EXT_MEM_write_buffer(0, mem_pointer, sizeof(struct MEASUREMENT),
@@ -290,9 +342,9 @@ int16_t main(void) {
                                 sizeof(struct MEASUREMENT),
                                 (uint8_t*)&(measure[i]));
                     }
-                    for(i = 0; i < MAX_MEASURE; i++) {
-                        Nop(); //WRITE TO SD CARD!!!!!!
-                    }
+#ifdef SD_CARD                      
+                        SD_CARD_WRITE_STRUCT(measure);
+#endif
                 }
                 //Read structs in from mem2, cpy to SD CARD
                 for(j = 0;
@@ -303,19 +355,126 @@ int16_t main(void) {
                                 sizeof(struct MEASUREMENT),
                                 (uint8_t*)&(measure[i]));
                     }
-                    for(i = 0; i < MAX_MEASURE; i++) {
-                        Nop(); //WRITE TO SD CARD!!!!!!
-                    }
+#ifdef SD_CARD
+                    SD_CARD_WRITE_STRUCT(measure);
+#endif
                 }
-            }           
+            }
+            UART1Init(6);
+            delay(100);
+            UART_SEND_PACKET();
+            UART1PutChar('\n');
+            delay(100);
             meas_index = 0;
-            Nop();
-            Nop();
             RTC_ALARMSET(1);
         }
 
-        ENTER_SLEEP;
+        
+        //ENTER_SLEEP;
+        ENTER_LV_SLEEP;
     }
+}
+
+int UART_SEND_PACKET(void) {
+    int j, i, k;
+    //struct MEASUREMENT temp[MAX_MEASURE];
+    int16_t f;
+    //This dumps all memory
+
+    for(i = 0; i < MAX_MEASURE; i++) {
+        for(k = 0; k < sizeof(struct MEASUREMENT)/2; k++) {
+            Nop();
+            Nop();
+            f = *( ((int*)&measure[i] + k) );
+            UART1PutChar( (f)&0xFF);
+            UART1PutChar( (f >> 8)&0xFF );
+        }
+        UART1PutChar('\n');
+    }
+    //return 0;
+ /*   for(j = 0; j < mem_pointer/sizeof(struct MEASUREMENT); j++) {
+        EXT_MEM_read_buffer(0, j*sizeof(struct MEASUREMENT),
+                sizeof(struct MEASUREMENT), (uint8_t*)&temp[0]);
+                //write to UART
+        for(k = 0; k < sizeof(struct MEASUREMENT)/2; k++) {
+            f = *( ((int*)&temp[0] + k) );
+            UART1PutChar( (f)&0xFF);
+            UART1PutChar( (f >> 8)&0xFF );
+        }
+        UART1PutChar('\n');
+    }*/
+/*
+    for(j = 0;
+            j < ((EXT_MEM_SIZE/sizeof(struct MEASUREMENT))/MAX_MEASURE);
+            j++) {
+        if(j * sizeof(struct MEASUREMENT) > mem_pointer) {
+            return 0; //we're done
+        }
+        for(i = 0; i < MAX_MEASURE; i++) {
+            EXT_MEM_read_buffer(0, i*sizeof(struct MEASUREMENT) +
+                    j*sizeof(struct MEASUREMENT),
+                    sizeof(struct MEASUREMENT),
+                    (uint8_t*)&(temp[i]));
+        }
+        //write to UART
+        for(i = 0; i < MAX_MEASURE; i++) {
+            for(k = 0; k < sizeof(struct MEASUREMENT)/2; k++) {
+                f = *( ((int*)&temp[i] + k) );
+                UART1PutChar( (f)&0xFF);
+                UART1PutChar( (f >> 8)&0xFF );
+            }
+            UART1PutChar('\n');
+        }
+    }*/
+    UART1PutChar('T');
+    //mem_pointer
+    //meas_index
+    return (0);
+}
+
+int SD_CARD_WRITE_STRUCT(struct MEASUREMENT *measure) {
+    int i, temp;
+    
+    TIMER_START;
+    SD_ON;
+    disk_initialize(0);
+    fr = f_mount(&FatFs, "", 1);
+    if (fr !=  FR_OK) {
+        return 1;
+    }
+    fr = f_open(&fil, "a.bin", FA_WRITE | FA_OPEN_EXISTING);
+    if (fr == FR_NO_FILE) {
+        fr = f_open(&fil, "a.bin", FA_WRITE | FA_CREATE_NEW);
+    }
+    f_lseek(&fil, f_size(&fil)); //end of file
+    
+    if(fr != FR_OK) {
+        return 1;
+    }
+
+    for (i = 0; i < MAX_MEASURE; i++) {
+        fr = f_write(&fil, (void*)&measure[i],
+                (UINT)sizeof(struct MEASUREMENT),
+                (UINT*)&temp);
+        if(fr != FR_OK) {
+            return 1;
+        }
+    }
+    f_close(&fil);
+    TIMER_END;
+    SD_OFF;
+    return 0;
+}
+
+//Set up Timer, target 1kHz interrupts
+void TimerInit(void)
+{
+   //Want 1kHz
+   PR1 = 0x3C00;
+   IPC0bits.T1IP = 5;	 //set interrupt priority
+   T1CON = 0b0000000000000000;	//turn off the timer
+   IFS0bits.T1IF = 0;	 //reset interrupt flag
+   IEC0bits.T1IE = 1;	 //turn on the timer1 interrupt
 }
 
 void
@@ -443,4 +602,17 @@ MAX17040_VDD(void)
     reset_i2c_bus();
 
     return ((uint16_t)high << 8) | low;
+}
+
+void
+init_ports(void)
+{
+    //Just set every single port as output
+    //The input buffer really has trouble with floating pins
+    TRISB = 0x0000;
+    TRISC = 0x0000;
+    TRISD = 0x0000;
+    TRISE = 0x0000;
+    TRISF = 0x0000;
+    TRISG = 0x0000;
 }

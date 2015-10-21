@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import csv
 from bokeh.plotting import *
 
 SCREEN_WIDTH = 800
@@ -28,20 +29,36 @@ struct MEASUREMENT {
     //int16_t BATT;
     //now 172 bit
 """
-
-print sys.argv[1]
+x = []
+TEMP = []
+PRESSURE = []
+XACC = []
+YACC = []
+ZACC = []
+LALOG = []
+with open(sys.argv[1]) as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        x.append(int(row['s']) + 60*int(row['m']))
+        TEMP.append(int(row['Temp'])/100.0)
+        PRESSURE.append(int(row['Pres'])/1000.0)
+        XACC.append(int(row['Xa'])/16384.0)
+        YACC.append(int(row['Ya'])/16384.0)
+        ZACC.append(int(row['Za'])/16384.0)
+        LALOG.append(int(row['La']))
 
 #prep data
 N = 100
 #Pull out all time in seconds sequentially -> might look like x =[0, 1, 2, 3, 4]
-x = np.linspace(0, 100, N)
-
+#x = np.linspace(0, 100, N)
+"""
 TEMP = np.random.uniform(20,29, size=N)
 PRESSURE = np.random.uniform(100, 105, size=N)
 XACC = np.random.uniform(-2,2, size = N)
 YACC = np.random.uniform(-2,2, size = N)
 ZACC = np.random.uniform(-2,2, size = N)
 LALOG = np.random.uniform(0,65535, size = N)
+"""
 """
 x = np.linspace(0, 4*np.pi, N)
 y0 = np.sin(x)
