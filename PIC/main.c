@@ -319,7 +319,7 @@ int16_t main(void) {
                             (uint8_t*)&(measure[i]));
                     mem_pointer += sizeof(struct MEASUREMENT);
                 }
-            } else if(meas_index + mem_pointer < 2*EXT_MEM_SIZE) {
+            } else if(meas_index*sizeof(struct MEASUREMENT) + mem_pointer < 2*EXT_MEM_SIZE) {
                 for(i = 0; i < meas_index; i++) {
                     EXT_MEM_write_buffer(1, mem_pointer - EXT_MEM_SIZE, sizeof(struct MEASUREMENT),
                             (uint8_t*)&(measure[i]));
@@ -376,8 +376,7 @@ int16_t main(void) {
 }
 
 int UART_SEND_PACKET(void) {
-    int j, i, k;
-    //struct MEASUREMENT temp[MAX_MEASURE];
+    int  i, k;
     int16_t f;
     //This dumps all memory
 
@@ -391,42 +390,7 @@ int UART_SEND_PACKET(void) {
         }
         UART1PutChar('\n');
     }
-    //return 0;
- /*   for(j = 0; j < mem_pointer/sizeof(struct MEASUREMENT); j++) {
-        EXT_MEM_read_buffer(0, j*sizeof(struct MEASUREMENT),
-                sizeof(struct MEASUREMENT), (uint8_t*)&temp[0]);
-                //write to UART
-        for(k = 0; k < sizeof(struct MEASUREMENT)/2; k++) {
-            f = *( ((int*)&temp[0] + k) );
-            UART1PutChar( (f)&0xFF);
-            UART1PutChar( (f >> 8)&0xFF );
-        }
-        UART1PutChar('\n');
-    }*/
-/*
-    for(j = 0;
-            j < ((EXT_MEM_SIZE/sizeof(struct MEASUREMENT))/MAX_MEASURE);
-            j++) {
-        if(j * sizeof(struct MEASUREMENT) > mem_pointer) {
-            return 0; //we're done
-        }
-        for(i = 0; i < MAX_MEASURE; i++) {
-            EXT_MEM_read_buffer(0, i*sizeof(struct MEASUREMENT) +
-                    j*sizeof(struct MEASUREMENT),
-                    sizeof(struct MEASUREMENT),
-                    (uint8_t*)&(temp[i]));
-        }
-        //write to UART
-        for(i = 0; i < MAX_MEASURE; i++) {
-            for(k = 0; k < sizeof(struct MEASUREMENT)/2; k++) {
-                f = *( ((int*)&temp[i] + k) );
-                UART1PutChar( (f)&0xFF);
-                UART1PutChar( (f >> 8)&0xFF );
-            }
-            UART1PutChar('\n');
-        }
-    }*/
-    UART1PutChar('T');
+    //UART1PutChar('T');
     //mem_pointer
     //meas_index
     return (0);
