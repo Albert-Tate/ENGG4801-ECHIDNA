@@ -91,7 +91,7 @@ struct TIME {
     uint8_t year;
 } local_time;
 
-#define MAX_MEASURE 60 //How many fit on device before we write to SRAM
+#define MAX_MEASURE 120 //How many fit on device before we write to SRAM
 struct MEASUREMENT {
     //MS5637
     int32_t TEMPERATURE;
@@ -168,9 +168,7 @@ int16_t main(void) {
     _SDI1R = 24;
             //UART
     UART_TX = 3; //D10
-    //UART_RX = 12; //d11 (RP12)
-    //_U1RXR = 11; //D11
-    RPINR18bits.U1RXR = 12;
+    //RPINR18bits.U1RXR = 12;
     
     __builtin_write_OSCCONL(OSCCON | 0x40); 
 
@@ -239,7 +237,6 @@ int16_t main(void) {
             UART1PutChar('\n');
         }
     }*/
-    
     while(1) {
         MS5637_OFF;
         MPU9150_OFF;
@@ -369,7 +366,6 @@ int16_t main(void) {
             RTC_ALARMSET(1);
         }
 
-        
         //ENTER_SLEEP;
         ENTER_LV_SLEEP;
     }
