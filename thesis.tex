@@ -332,7 +332,7 @@ In light of this scenario, there is a significant research potential in such a d
 			
 			 The board had an incredibly powerful onboard microprocessor and was very expandable whilst retaining a relatively small footprint. However this design philosophy lead to a number of limitations in the context of small animal biologging. The most significant of these limitations is the short battery life, only 40 hours in the field, when outfitted with a GPS module. The onboard processor is overpowered for the application and any broken sensors will cause the system to endlessly poll that sensor, halting data acquisition, although this problem can be solved with a firmware patch. \\
 			 
-			  A less generalized approach to this specific design problem is needed for this project however this resource will be incredibly valuable reference throughout development. The power management electronics and uSD interface, including power transistors, are all very applicable to this project and will likely be incorporated.\\
+			  A less generalized approach to this specific design problem is needed for this project however this resource will be incredibly valuable reference throughout development. The power management electronics and uSD interface, including power transistors, are all very applicable to this project and will likely be incorporated.
 			\begin{figure}[H]
 				\centering
 				\includegraphics[width=350px]{Figures/BeeBoardDiagram.png}
@@ -347,7 +347,7 @@ In light of this scenario, there is a significant research potential in such a d
 			
 			Despite this being very similar in scope to this project, there are a few design decisions that ultimately make it unsuitable for this application. The solar panels would interfere with the echidnas attempts to warm up in the sun and the lack of any fixed nest for the echidna makes the radio base station approach not appropriate. \\
 			
-			The Camazotz board is a good example of miniaturized embedded design as the board itself only weighs 30g. The effective power management and GPS chipset both proved to deliver significant power savings and are both components of the design which will likely be factored into this project. \\
+			The Camazotz board is a good example of miniaturized embedded design as the board itself only weighs 30g. The effective power management and GPS chipset both proved to deliver significant power savings and are both components of the design which will likely be factored into this project. 
 			\begin{figure}[H]
 				\centering
 				\includegraphics[width=5cm]{Figures/CamazotzDiagram.png}
@@ -361,7 +361,7 @@ In light of this scenario, there is a significant research potential in such a d
 			 
 			 There are not many specific design problems solved by this product for the primary application, even though it serves the same purpose. \\ 
 			 
-			 This device illustrates an underlying issue with the literature and the general progression of the art; a movement has occurred towards 'smart' nodes that are able to communicate with each other and surrounding networks, like the cellular one. Unfortunately in the Australian outback these networks are generally not available as Echidnas are not particularly social or return to the same location, making any radio reliant methods unreliable at best for this application.\\
+			 This device illustrates an underlying issue with the literature and the general progression of the art; a movement has occurred towards 'smart' nodes that are able to communicate with each other and surrounding networks, like the cellular one. Unfortunately in the Australian outback these networks are generally not available as Echidnas are not particularly social or return to the same location, making any radio reliant methods unreliable at best for this application.
 			 
 		\newpage
 		\subsection{CritterCam}
@@ -373,24 +373,90 @@ In light of this scenario, there is a significant research potential in such a d
 			 
 			  Unfortunately the weight of the unit is 1.1kg which is almost heavier than some of the animals the sensor board proposed in this report could be deployed on. This is one of the earliest commercial remote sensing applications and appears here mostly for completeness as the style of approach to the problem, with no reliance on external infrastructure, is aligned with the goals for this project however miniaturizing the technology to such an extent has historically been very difficult.\\
 			  
-			  The device does show a number of novel design decisions which are appropriate for this project. Since it has been such a long running project, the system engineering has been extensively honed and all the space available has been used well. \\
-	
+			  The device does show a number of novel design decisions which are appropriate for this project. Since it has been such a long running project, the system engineering has been extensively honed and all the space available has been used well. 
+	\newpage
 	\section{Technical Background}
+		Many useful lessons can be taken from the previous products that exist in the art however these alone do not create an entire solution. This section will provide some technical background that is necessary to both fulfill the requirements set out by this project and to adequately justify a number of design decisions. This is not by any means an exhaustive background and some familiarity with embedded systems and electronics design is assumed. \\
+		
+		 This section only exists to inform the reader of the relevant technologies, uses and other considerations that need to be taken into account to design an embedded system for this application. For further details on exact component selection and system architecture see section \ref{sec:components}. 
 	%Remember: This section is about technology choices, not specific parts
 		\subsection{Microcontrollers}
+		A microcontroller is a general purpose computing device that can make basic calculations and communicate with external peripherals like sensors and memory modules. In general these can consume significant amounts of power with the PIC32 on the BEE-UTE Board \cite{Freakley13} drawing as much as 30mA in an active state \cite{PIC32}. \\
+		
+		In the context of this application, relatively little processing power is needed, as there is only a small amount of computations occurring onboard. What is required is an extremely low current draw, small physical size without relying on Ball Grid Array (BGA) footprints and a bevy of peripheral communication abilities. 
 		\subsection{Movement Sensing}
+			Detecting animal movement usually requires the synergy of several sensors. Classifying movement states and localizing position are typically done separately. Movement is usually sensed by measuring acceleration of which there are two main approaches; measuring the acceleration along an axis (accelerometer), or measuring rotational acceleration across axes (gyroscope). Gyroscopes typically consume more power than accelerometers by a factor of 10 or more \cite{InvenMPU9150} so for this, low power, application, accelerometers will be used to measure movement. \\
+			
+			Accelerometers are devices which measure acceleration along an axis. The vast majority of accelerometers have 3 orthogonal axes of measurement. Tri-axial accelerometry has been used as a primary data source in the past, as movement states can be classified from just this data alone \cite{Ran12, Shepard08} and can be much more accurate and less invasive than equivalent measuring methods for determining movement states \cite{Terrill13, Lamprecht14}. 
 		\subsection{GPS Module}
+			Global Positioning System (GPS) modules are devices which interact with satellites to determine their exact position. Implementation specifics vary but the fundamental concept is for the module to establish communication with four or more satellites using an external antenna and the align the internal clock with them to localize its position. \\
+			
+			This requires fairly high level floating point arithmetic which is usually provided by the module itself. These satellite fixes can take as long as 30 seconds. A typical GPS module can draw as much as 50mA in active mode \cite{Carroll10}.
+			
 		\subsection{Peripheral Communications}
-		\subsection{Volatile \& Non-Volatile Memories}
-		\subsection{Battery Chemistries}
-
-\chapter{Design}
-
-	\section{Component Selection}
+			In embedded systems there are two major protocols for communicating between devices that might have separate clocks. These methods are known as Serial Peripheral Interface (SPI) and Inter-Integrated Circuit (I2C). \\
+			
+			I2C is a simple, two wire interface while SPI is more complex. It requires 3 wires plus an extra wire for every device attached. In general I2C is a slower interface than SPI although that shouldn't be a limiting factor in this application. \\
+			
+			Since size is a significant requirement in this project, care should be taken to choose peripheral devices that operate on I2C so as to minimize the amount of printed circuit board (PCB) traces. 
+			
+		\subsection{Volatile \& Non Volatile Memories}
+			There are two major kinds of memory in electronic systems; volatile and non volatile each with their own power/use tradeoffs. Volatile memory is memory which loses the saved data whenever the power is disconnected whereas non volatile memory will retain memory permanently. \\
+			
+			The major design tradeoff between these two methods is energy consumption; it is very inefficient to write bursts of small data to a non volatile memory \cite{Sandisk} however the cost is reduced significantly when writing to volatile memory. \\
+			
+			The system will require some form of non volatile memory however the solution should have both forms of memory on board, to minimize frequency of writing to non volatile memory.
+			
 		\subsection{Power Supply}
+			Most electronic devices are designed with very specific input voltages to power them; small deviations can damage the device permanently. Battery voltages also decrease the longer they are used. Because of this, power supplies are used to regulate the voltage being supplied. \\
+			
+			There are two major kinds of power supplies being used; linear and switching regulators \cite{TI2011}. Linear regulators use a transistor in the active region of operation to behave as a variable resistor, reducing the voltage. Because of this design, linear regulators can only ever output a lower voltage than their input. This design also incurs a significant amount of energy loss as the input and output currents are the same but the voltage changes significantly. \\
+			
+			Switching regulators are more complex and usually use a reference waveform and a comparator to vary the duty cycle of an output stage transistor which is then fed into a filtering circuit to stabilize the voltage into a specified DC value. They can also step up voltages from lower ones to higher ones. Because of this added complexity and the generation of the reference waveform, they tend to consume a small amount of current, called the quiescent current, even when not supplying energy to the circuit but despite this are generally much more efficient than linear regulators, typically around 90\%. 
+			
+		\subsection{Battery Chemistries}
+			There are a number of different battery chemistries being used in embedded system applications, the three most common being: Alkaline, Lithium-Ion and Lithium-Polymer. \\
+			
+			Alkaline cells rely on the interaction between zinc and mangnanese (IV) oxide. These cells are typically not rechargeable and can be quite heavy as they are typically produced inside a steel case. They also have a problem with high current draws; the capacity of the battery decreases with increasing load current. \\
+			
+			Lithium-Ion is probably the most common battery type seen in robotics. They have a large capacity to weight ratio and are rechargeable. However they are most commonly produced in a hard plastic case which increases the weight significantly. \\
+			
+			Lithium-Polymer or, more correctly, lithium-ion polymer is the same chemistry as a lithium ion cell, but packaged in a soft case. This makes them substantially lighter than other chemistries per unit charge as shown in Figure \ref{fig:BAT} but makes them susceptible to damage. \\
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=14cm]{Figures/EDC.png}
+				\caption{Energy Density of Various Chemistries \cite{icc}}
+				\label{fig:BAT}
+			\end{figure}		
+	
+			This damage is a significant factor for this project. When lithium, and a few other chemistries, cells are damaged, they can sometimes undergo a state called thermal runaway, where the entirety of their energy is converted to heat in a few seconds. This can be quite violent and appropriate protections need to be taken into account to stop this from happening to any batteries placed on an animal.
+
+\chapter{Design Overview}
+
+	\section{Hardware} \label{sec:components}
+		The general approach to component selection for this project has been a careful balancing act of size, power consumption and in some cases weight. Choosing the best devices to start from was absolutely essential in designing a system to meet the specifications. A few of these were selected over a few revisions; initially the project was implemented on small custom PCB's in order to test functionality. \\
+		
+		The designed system has utilised a few key elements from the solutions looked at previously in order to accomplish the stated specification. The microcontroller can turn peripheral devices on and off directly from the IO pins and there is a multilevel cache made of volatile and non volatile memories to get the best battery life out of the device. An architecture overview is shown in Figure \ref{fig:HWD}.
+		
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=11cm]{Figures/HWD.png}
+			\caption{Hardware Diagram}
+			\label{fig:HWD}
+		\end{figure}		
+		\newpage
+		
 		\subsection{Microcontroller}
 		\subsection{Sensors}
+			\subsubsection{Accelerometry}
+			\subsubsection{Pressure \& Temperature}
+			\subsubsection{Light Sensor}
+			\subsubsection{GPS Localisation}
+			\subsubsection{Battery Meter}
+			
 		\subsection{Data Storage}
+		\subsection{Power Supply}
 		\subsection{Connectors}
 	\section{Firmware}
 		\subsection{Design Goals} %Working title
@@ -565,6 +631,14 @@ files can be downloaded.
 	\emph{PIC24FJ128GA310 Family - Reference Manual} [Online],
 	http://ww1.microchip.com/downloads/en/DeviceDoc/39996f.pdf
 	
+	\bibitem{PIC32}
+	Microchip Technology Inc. (2008)
+	\emph{PIC32MX Family - Reference Manual} [Online], http://ww1.microchip.com/downloads/en/DeviceDoc/PIC32MX\_Datasheet\_v2\_61143B.pdf
+	
+	\bibitem{TI2011}
+	Texas Instruments. (2011)
+	\emph{Linear and Switching Voltage Regulator Fundamental Part 1} [Online], http://www.ti.com/lit/an/snva558/snva558.pdf
+	
 	\bibitem{AVAGOLIGHT}
 	Avago Technologies. (2007, Jan) 
 	\emph{APDS-9005 Miniature Surface-Mount Ambient Light Photo Sensor} [Online],
@@ -600,8 +674,10 @@ files can be downloaded.
 	\emph{I2C-bus specification and user manual} [Online],
 	http://www.nxp.com/documents/user\_manual/UM10204.pdf
 	
-	\bibitem{UQRISK}
-	P. a. F. Division. (2015). Risk Assesment Form. [Online]. http://www.pf.uq.edu.au/pdf/SafetyForms/frm\_PF388.pdf.
+	\bibitem{icc}
+	ICC Nexergy (2015)
+	\emph{Comparison of Energy Densities for Various Battery Chemistries} [Online], http://www.iccnexergy.com/battery-systems/battery-energy-density-comparison/
+	
 \end{thebibliography}
 
 \end{document}
