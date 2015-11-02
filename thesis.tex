@@ -1,0 +1,607 @@
+\documentclass[12pt,openany,a4paper]{book}
+\usepackage{graphics}	% if you want encapsulated PS figures.
+\usepackage{titlesec}
+\usepackage{textcomp}
+\usepackage{float}
+\usepackage{adjustbox}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+
+\titleformat{\chapter}{\normalfont\huge\bf}{\thechapter.}{20pt}{\huge}
+% If you use a macro file called macros.tex :
+% \input{macros}
+% Note: The present document has its macros built in.
+
+% Number subsections but not subsubsections:
+\setcounter{secnumdepth}{2}
+% Show subsections but not subsubsections in table of contents:
+\setcounter{tocdepth}{2}
+
+\pagestyle{headings}		% Chapter on left page, Section on right.
+\raggedbottom
+
+\setlength{\topmargin}		{-5mm}  %  25-5 = 20mm
+\setlength{\oddsidemargin}	{10mm}  % rhs page inner margin = 25+10mm
+\setlength{\evensidemargin}	{0mm}   % lhs page outer margin = 25mm
+\setlength{\textwidth}		{150mm} % 35 + 150 + 25 = 210mm
+\setlength{\textheight}		{240mm} % 
+
+\renewcommand{\baselinestretch}{1.2}	% Looks like 1.5 spacing.
+
+% Stop figure/tables smaller than 3/4 page from appearing alone on a page:
+\renewcommand{\textfraction}{0.25}
+\renewcommand{\topfraction}{0.75}
+\renewcommand{\bottomfraction}{0.75}
+\renewcommand{\floatpagefraction}{0.75}
+
+% THEOREM-LIKE ENVIRONMENTS:
+\newtheorem{defn}	{Definition}	% cf. \dfn for cross-referencing
+\newtheorem{theorem}	{Theorem}	% cf. \thrm for cross-referencing
+\newtheorem{lemma}	{Lemma}		% cf. \lem for cross-referencing
+
+% AIDS TO CROSS-REFERENCING (All take a label as argument):
+\newcommand{\eref}[1] {(\ref{#1})}		% (...)
+\newcommand{\eq}[1]   {Eq.\,(\ref{#1})}		% Eq.~(...)
+\newcommand{\eqs}[2]  {Eqs.~(\ref{#1}) and~(\ref{#2})}
+\newcommand{\dfn}[1]  {Definition~\ref{#1}}	% Definition~...
+\newcommand{\thrm}[1] {Theorem~\ref{#1}}	% Theorem~...
+\newcommand{\lem}[1]  {Lemma~\ref{#1}}		% Lemma~...
+\newcommand{\fig}[1]  {Fig.\,\ref{#1}}		% Fig.~...
+\newcommand{\tab}[1]  {Table~\ref{#1}}		% Table~...
+\newcommand{\chap}[1] {Chapter~\ref{#1}}	% Chapter~...
+\newcommand{\secn}[1] {Section~\ref{#1}}	% Section~...
+\newcommand{\ssec}[1] {Subsection~\ref{#1}}	% Subsection~...
+
+% AIDS TO FORMATTING:
+\newcommand{\teq}[1]	{\mbox{$#1$}}	% in-Text EQuation (unbreakable)
+\newcommand{\qed}	{\hspace*{\fill}$\bullet$}	% end of proof
+
+% MATHEMATICAL TEMPLATES:
+% Text or math mode:
+\newcommand{\half}	{\ensuremath{\frac{1}{2}}}	% one-half
+\newcommand{\halftxt}	{\mbox{$\frac{1}{2}$}}	  	% one-half, small
+% Math mode only:
+% N.B. Parentheses are ROUND; brackets are SQUARE!
+\newcommand{\oneon}[1]	{\frac{1}{#1}}		  % reciprocal
+\newcommand{\pow}[2]	{\left({#1}\right)^{#2}}  % Parenthesized pOWer
+\newcommand{\bow}[2]	{\left[{#1}\right]^{#2}}  % Bracketed pOWer
+\newcommand{\evalat}[2]	{\left.{#1}\right|_{#2}}  % EVALuated AT with bar
+\newcommand{\bevalat}[2]{\left[{#1}\right]_{#2}}  % Bracketed EVALuated AT
+% Total derivatives:
+\newcommand{\sdd}[2]	{\frac{d{#1}}{d{#2}}}		    % Short
+\newcommand{\sqdd}[2]	{\frac{d^2{#1}}{d{#2}^2}}	    % 2nd ("SQuared")
+\newcommand{\ldd}[2]	{\frac{d}{d{#1}}\left({#2}\right)}  % Long paren'ed
+\newcommand{\bdd}[2]	{\frac{d}{d{#2}}\left[{#2}\right]}  % long Bracketed
+% Partial derivatives (same sequence as for total derivatives):
+\newcommand{\sdada}[2]	{\frac{\partial {#1}}{\partial {#2}}}
+\newcommand{\sqdada}[2]	{\frac{\partial ^{2}{#1}}{\partial {#2}^{2}}}
+\newcommand{\ldada}[2]	{\frac{\partial}{\partial {#1}}\left({#2}\right)}
+\newcommand{\bdada}[2]	{\frac{\partial}{\partial {#1}}\left[{#2}\right]}
+\newcommand{\da}	{\partial}
+
+% ORDINAL NUMBERS:
+\newcommand{\ith}	{\ensuremath{i^{\rm th}}}
+\newcommand{\jth}	{\ensuremath{j^{\rm th}}}
+\newcommand{\kth}	{\ensuremath{k^{\rm th}}}
+\newcommand{\lth}	{\ensuremath{l^{\rm th}}}
+\newcommand{\mth}	{\ensuremath{m^{\rm th}}}
+\newcommand{\nth}	{\ensuremath{n^{\rm th}}}
+
+% SINUSOIDAL TIME AND SPACE-DEPENDENCY FACTORS:
+\newcommand{\ejot}	{\ensuremath{e^{j\omega t}}}
+\newcommand{\emjot}	{\ensuremath{e^{-j\omega t}}}
+
+% UNITS (TEXT OR MATH MODE, WITH LEADING PADDING SPACE IF APPLICABLE):
+% NB: These have not been tested since being modified for LaTeX2e.
+\newcommand{\pack}	{\hspace{-0.08em}}
+\newcommand{\Pack}	{\hspace{-0.12em}}
+\newcommand{\mA}	{\ensuremath{\rm\,m\pack A}}
+\newcommand{\dB}	{\ensuremath{\rm\,d\pack B}}
+\newcommand{\dBm}	{\ensuremath{\rm\,d\pack B\pack m}}
+\newcommand{\dBW}	{\ensuremath{\rm\,d\pack B\Pack W}}
+\newcommand{\uF}	{\ensuremath{\rm\,\mu\pack F}}
+\newcommand{\pF}	{\ensuremath{\rm\,p\pack F}}
+\newcommand{\nF}	{\ensuremath{\rm\,n\pack F}}
+\newcommand{\uH}	{\ensuremath{\rm\,\mu\pack H}}
+\newcommand{\mH}	{\ensuremath{\rm\,m\pack H}}
+\newcommand{\Hz}	{\ensuremath{\rm\,H\pack z}}
+\newcommand{\kHz}	{\ensuremath{\rm\,k\pack H\pack z}}
+\newcommand{\MHz}	{\ensuremath{\rm\,M\pack H\pack z}}
+\newcommand{\GHz}	{\ensuremath{\rm\,G\pack H\pack z}}
+\newcommand{\J}		{\ensuremath{\rm\,J}}
+\newcommand{\kg}	{\ensuremath{\rm\,k\pack g}}
+\newcommand{\K}		{\ensuremath{\rm\,K}}
+\newcommand{\m}		{\ensuremath{\rm\,m}}
+\newcommand{\cm}	{\ensuremath{\rm\,cm}}
+\newcommand{\km}	{\ensuremath{\rm\,k\pack m}}
+\newcommand{\mm}	{\ensuremath{\rm\,m\pack m}}
+\newcommand{\nm}	{\ensuremath{\rm\,n\pack m}}
+\newcommand{\um}	{\ensuremath{\rm\,\mu m}}
+\newcommand{\Np}	{\ensuremath{\rm\,N\pack p}}
+\newcommand{\s}		{\ensuremath{\rm\,s}}
+\newcommand{\ms}	{\ensuremath{\rm\,m\pack s}}
+\newcommand{\us}	{\ensuremath{\rm\,\mu s}}
+\newcommand{\V}		{\ensuremath{\rm\,V}}
+\newcommand{\mV}	{\ensuremath{\rm\,m\Pack V}}
+\newcommand{\W}		{\ensuremath{\rm\,W}}
+\newcommand{\mW}	{\ensuremath{\rm\,m\Pack W}}
+\newcommand{\ohm}	{\ensuremath{\rm\,\Omega}}
+\newcommand{\kohm}	{\ensuremath{\rm\,k\Omega}}
+\newcommand{\Mohm}	{\ensuremath{\rm\,M\Omega}}
+\newcommand{\degs}	{\ensuremath{\rm^{\circ}}}
+
+% LaTeX run-time type-in command:
+%
+% \typein{Enter \protect\includeonly{...} command (or just type RETURN):}
+%
+% Uncommenting this command makes LaTeX prompt you for the \includeonly
+% list.  At the prompt
+%
+%	\@typein=
+%
+% you type
+%
+%	\includeonly{chap1,chap2}
+%
+% to include the files chap1.tex and chap2.tex and omit any others.
+% To include every \include file, just hit RETURN.
+% If you are running LaTeX from xtexsh, you may need to click the mouse
+% in the LaTeX window to position the cursor at the \@typein prompt.
+
+\begin{document}
+
+\frontmatter
+% By default, frontmatter has Roman page-numbering (i,ii,...).
+
+\begin{titlepage}
+\renewcommand{\baselinestretch}{1.0}
+\begin{center}
+\vspace*{35mm}
+\Huge\bf
+	%Low Power Sensor Board for Tracking Lightweight Animals \\
+	$\mu$Tracker - Ultra Compact Sensing Platform \\
+\vspace{20mm}
+\large\sl
+		by\\
+		Albert Tate
+		\medskip\\
+\rm
+		School of Information Technology and Electrical Engineering,\\
+		The University of Queensland.\\
+\vspace{30mm}
+		Submitted for the degree of\\
+		Bachelor of Engineering
+		\smallskip\\
+\normalsize
+		in the field of Electrical and Computer Engineering
+		\medskip\\
+\large
+		November 2015		
+\end{center}
+\end{titlepage}
+
+\cleardoublepage
+
+\begin{flushright}
+	\bf Albert Tate\\ \normalfont
+	42910444\\
+	67 Swan Street\\
+	Gordon Park\\
+	QLD 4031\\
+	\medskip
+\end{flushright}
+\begin{flushleft}
+  Prof Paul Strooper\\
+  Head of School\\
+  School of Information Technology and Electrical Engineering\\
+  The University of Queensland\\
+  St Lucia, Q 4072\\
+  \bigskip\bigskip
+  Dear Professor Strooper,
+\end{flushleft}
+
+In accordance with the requirements of the degree of Bachelor of
+Engineering in the School of Information Technology and Electrical Engineering,
+I present the following thesis entitled 
+\begin{center}
+	\emph{``$\mu$Tracker - Ultra Compact Sensing Platform''}
+\end{center}  This work was performed under the supervision of Dr Philip Terrill.
+I declare that the work submitted in this thesis is my own, except as
+acknowledged in the text and footnotes, and has not been previously
+submitted for a degree at The University of Queensland or any other
+institution.
+
+\begin{flushright}
+	Yours sincerely,\\
+	\medskip
+	\makebox[1.0in]{\hrulefill}\\
+	\medskip
+	Albert Tate.
+\end{flushright}
+
+\cleardoublepage
+
+\chapter{Acknowledgments}
+
+Acknowledge your supervisor, preferably with a few short and specific
+statements about his/her contribution to the content and direction of
+the project.  If you collaborated with another student, acknowledge
+your partner's contribution, including any parts of the thesis of
+which s/he was the principal author or co-author; this information can
+be duplicated in footnotes to the chapters or sections to which your
+partner has contributed.  Briefly describe any assistance that you
+received from technical or administrative staff.  Support of family
+and friends may also be acknowledged, but avoid sentimentality---or
+hide it in the dedication.
+%Acknowledge UWA, Craig Freakley for BeeBoard
+
+\cleardoublepage
+
+\chapter{Abstract}
+
+% Yeah really need to like actually redo this.
+
+The use of biologging for remote sensing of animal behavior has had a long history and many novel applications \cite{Coudert05}. A key datatype in recent years has been tri-axial accelerometry \cite{Ran12,Shepard08} which can be used to accurately discern between different movement types and postures in animals or humans \cite{Lamprecht14,Terrill13}. Despite the widespread use of biologging for animal research, most solutions are either very heavy \cite{Marshall07} or, when light, rely on existing infrastructure in the environment like radio base stations \cite{Jurdak13} or cell-phone towers \cite{Bennett11}. In this report a project is proposed to redesign an existing board, the BEE-UTE Board \cite{Freakley13} to be smaller, more efficient and have a longer operating lifetime. This will allow the board to be used on a larger variety of animals and allow for greater time between recaptures of the animal for data retrieval which will have both monetary benefits and less impact on the welfare of the animal. The proposed project will be able to measure light intensity, tri-axial accelerometry, temperature, air pressure and GPS position in a package with a total weight of less than 50 grams including battery and a board size of less than 2.5cm by 2.5cm which will operate at 100Hz sampling rate with selective GPS readings for at least 14 days. The GPS readings will activate when significant activity is measured, calculated by a simple moving average (SMA) on the accelerometer data. The low power functionality will be achieved by a novel power control scheme and the use of power efficient volatile memory, SRAM, to allow much larger bulk writes to non-volatile memory (microSD card).
+
+\tableofcontents
+
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+
+% If file los.tex begins with ``\chapter{List of Symbols}'':
+% \include{los}
+
+\cleardoublepage
+
+\mainmatter
+% By default, mainmatter has Arabic page-numbering (1,2,...).
+
+
+% Chapters may be \include files, each beginning with a line like
+%
+%	\chapter{Title of chapter}
+%
+% e.g. if two chapter files were called intro.tex and theory.tex,
+% we would say
+%
+%	\include{intro}
+%	\include{theory}
+
+\chapter{Introduction}
+Echidnas are small native animals of Australia and New Guinea. The echidna is from the order monotremata meaning, in non technical terms, that it is a mammal that lays eggs. Monotremes are a unique order of animals with only five extant species and very little is known about their physiological response to environment stressors.\\ 
+
+Generally speaking, echidnas struggle with external temperatures greater than about 35 degrees celsius \cite{Brice02}. This suggested that their thermoregulation came from an external source much like cold blooded animals. However recent studies have suggested that this might not be the case and the general assumption is that echidnas employ a combination of both strategies, behavioural and physiological, to manage their body temperature. This has lead to a significant research interest in being able to track these animals in the wild.\\
+
+Due to strict ethics regulations mandating extremely low weights in biologging electronics \cite{Mamm87}, current existing biologging devices find themselves regularly unsuitable for such an application, usually limited by an extremely short battery life. Modern technologies and methods should now allow for a new, significantly smaller, lighter, more robust and more power efficient biologging device to be created. \\
+
+These biologging devices would not be limited to just echidnas however; there are a significant number of animals in the same weight class that are poorly understood. Such a device would allow large studies of predator-prey dynamics in the wild, tracking migratory animals in extreme environments and remote monitoring of unfenced livestock. \\
+
+In light of this scenario, there is a significant research potential in such a device being developed; an incredibly lightweight and power efficient tracker capable of extended operation in harsh environments.
+
+\chapter{Background}
+	\section{Echidna Physiology \& Behaivour}
+	Echidna thermoregulation is poorly understood. There is no complete consensus on how they do it \cite{Brice02} but current studies suggest it is a combination of behaivoural patterns, like laying in the sun as a cold blooded animal would do, and physiological mechanisms, like any warm blooded creature.\\ 
+	
+	Their internal body temperature has been measured from as high as 35\textdegree C and as low as 5\textdegree C during hibernation. The echidna will usually seek shelter in hot conditions and is not known to sweat or pant. During autumn and winter, the echidna will generally go into a hibernative state, severely reducing activity. \\
+	
+	While the echidna are active however, they very seldom have interactions with other creatures. They are generally considered to be solitary creatures. \\
+	
+	Despite their solitary lifestyle, when they are not in hibernation they can cover significant distances within a single day, swim about as well as most mammals and will dig into ant and termite nests for food. \\
+	
+	Despite the diet of ants, the echidna can grow up to 6kg in weight for males and around 4.5kg for females. The echidna is only about 30-45cm long in the body which makes it a relatively dense creature. \\
+
+	The echidna is found all around Australia and in the southern mountains of New Guinea and as such, it has managed to survive in a range of climates. It has been found in both snowy regions and dry deserts. They do not have fixed shelter and tend to wander about, which makes population studies difficult. \\
+	
+	%Due to a lack of suitable biologging platforms, existing studies have generally been done outside of the native habitat, which may have limited the accuracy of any results.
+	
+	\section{Product Specification}
+	In light of this knowledge from the previous section, it is now possible to know what the biologging device should do and why. The key performance characteristic will be operational lifetime as there is an existing product \cite{Freakley13} that otherwise meets the specifications, but only lasts 40 hours in the wild. \\
+	
+	The device needs to be extremely light to comply with ethics regulations \cite{Mamm87} usually being around 5\% of the body weight of the creature. In addition to this it must be extremely robust, it needs to handle the large temperature swings found in deserts, the enclosure must be waterproof and handle most low speed impacts. \\
+	
+	In order to properly track any behaviour the echidna may exhibit in order to change its body temperature, the enclosure must be transparent, to allow for light sensing. Rudimentary movement sensing also needs to be used. The device should be able to track absolute position, where appropriate, using a GPS module. Tracking internal temperature can not be reasonably done with a board solution and will be done with another device, the specification and selection of which is out of the scope of this design. However the environment temperature will be sensed. \\
+	
+	Due to the hibernative nature of the echidna, the onboard firmware should have some rudimentary analysis on the data to allow it to change sampling rates depending on the level of activity, to best extend the battery life. \\
+	
+	Table \ref{tab:SPEC} quantitatively specifies some of the  other requirements of the design: \\
+	\begin{table}[H]
+		\centering
+		\begin{adjustbox}{max width=\textwidth}
+			\rowcolors{2}{white}{lightgray}
+			\begin{tabular}{c | c }
+				Description & Specification\\
+				\hline
+				Max system weight & 50g \\
+				Max board size & 1500mm$^{2}$  \\
+				Operational lifetime & 7 days \\
+				Max material cost & \$150 AUD \\
+				Robustness & IP67 \\
+				Min storage space & 1GB
+			\end{tabular}
+		\end{adjustbox}
+		\caption{Device Specification}
+		\label{tab:SPEC}
+	\end{table}
+	
+	\section{Previous Solutions}
+		\subsection{BEE-UTE Board}
+			In previous studies of echidna movements, the BEE-UTE board was used \cite{Freakley13} which was developed at the University of Queensland (UQ). It was designed as a general base board for biologging. The board was 625mm$^{2}$ and had a 32bit microcontroller onboard as well as sensors for acceleration, magnetic heading, angular acceleration, pressure and temperature. The board also provided headers for future expansion. Further details can be seen in Figure \ref{fig:BEE}. \\
+			
+			 The board had an incredibly powerful onboard microprocessor and was very expandable whilst retaining a relatively small footprint. However this design philosophy lead to a number of limitations in the context of small animal biologging. The most significant of these limitations is the short battery life, only 40 hours in the field, when outfitted with a GPS module. The onboard processor is overpowered for the application and any broken sensors will cause the system to endlessly poll that sensor, halting data acquisition, although this problem can be solved with a firmware patch. \\
+			 
+			  A less generalized approach to this specific design problem is needed for this project however this resource will be incredibly valuable reference throughout development. The power management electronics and uSD interface, including power transistors, are all very applicable to this project and will likely be incorporated.\\
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=350px]{Figures/BeeBoardDiagram.png}
+				\caption{BEE-UTE Board System Diagram}
+				\label{fig:BEE}
+			\end{figure}
+			
+		\subsection{Camazotz}
+			The Camzotz Board, developed by CSIRO \cite{Jurdak13}, is a small tracking board for fruit bats that is very similar in scope to the project described here but has a few key deviations. The board has onboard sensors for GPS, accelerometry, pressure, temperature and acoustic signals, see Figure \ref{fig:Camazotz} for details. \\
+			
+			With some very clever duty cycling of peripheral sensors and the use of small solar panels the board is energy neutral, which means the board will operate until device failure; battery life is effectively infinite in most cases. A novel method was used to power the sensors; all the power was drawn directly from I/O ports of the microcontroller which allowed the board to completely turn off certain devices when they weren't being used, a significant energy saving compared to putting these devices in sleep mode. Communication of data was done via radio base stations located in known nesting roosts. \\
+			
+			Despite this being very similar in scope to this project, there are a few design decisions that ultimately make it unsuitable for this application. The solar panels would interfere with the echidnas attempts to warm up in the sun and the lack of any fixed nest for the echidna makes the radio base station approach not appropriate. \\
+			
+			The Camazotz board is a good example of miniaturized embedded design as the board itself only weighs 30g. The effective power management and GPS chipset both proved to deliver significant power savings and are both components of the design which will likely be factored into this project. \\
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=5cm]{Figures/CamazotzDiagram.png}
+				\caption{System Diagram of Camazotz Board}
+				\label{fig:Camazotz}
+			\end{figure}		
+		\subsection{Crane Tracker}
+			The CraneTracker \cite{Bennett11} is a wireless sensor network based platform for tracking Whooping Cranes on their migration from Texas through to Canada. The system is built on an Iris Mote with a ZigBee compliant radio transceiver. The actual devices make use of solar panels for extra power and primarily takes GPS readings.\\
+			
+			 Fundamentally the communication strategy employed by this study is incompatible with the proposed project; the radios use cellular networks to communicate their data, a luxury not available in the Australian outback. Overall this is a good example of a low weight design but is ultimately focused on solving the problem in a drastically different way. \\
+			 
+			 There are not many specific design problems solved by this product for the primary application, even though it serves the same purpose. \\ 
+			 
+			 This device illustrates an underlying issue with the literature and the general progression of the art; a movement has occurred towards 'smart' nodes that are able to communicate with each other and surrounding networks, like the cellular one. Unfortunately in the Australian outback these networks are generally not available as Echidnas are not particularly social or return to the same location, making any radio reliant methods unreliable at best for this application.\\
+			 
+		\newpage
+		\subsection{CritterCam}
+			One of the earlier remote sensing applications was the Crittercam \cite{Marshall07} which was expanded from its original analog video camera to a more complete digital system including a variety of data sensors. \\
+			
+			The Crittercam is primarily a video camera for marine animals. The newest version (Gen V) includes accelerometers, magnetometers, pressure, temperature and flowmeter sensors. All of this is sampled data is written to a MultiMedia Card (MMC), a predecessor to the SDcard. \\
+			
+			 Some of the biggest successes of the Crittercam are its incredible robustness and ability to actively monitor battery power and change modes when the battery is critical (when low battery is detected, the device will become a radio beacon to aid retrieval). However the reliance on video data is a relic from the earlier models and, compared to the large power cost, is of little use in a lot of research situations.\\
+			 
+			  Unfortunately the weight of the unit is 1.1kg which is almost heavier than some of the animals the sensor board proposed in this report could be deployed on. This is one of the earliest commercial remote sensing applications and appears here mostly for completeness as the style of approach to the problem, with no reliance on external infrastructure, is aligned with the goals for this project however miniaturizing the technology to such an extent has historically been very difficult.\\
+			  
+			  The device does show a number of novel design decisions which are appropriate for this project. Since it has been such a long running project, the system engineering has been extensively honed and all the space available has been used well. \\
+	
+	\section{Technical Background}
+	%Remember: This section is about technology choices, not specific parts
+		\subsection{Microcontrollers}
+		\subsection{Movement Sensing}
+		\subsection{GPS Module}
+		\subsection{Peripheral Communications}
+		\subsection{Volatile \& Non-Volatile Memories}
+		\subsection{Battery Chemistries}
+
+\chapter{Design}
+
+	\section{Component Selection}
+		\subsection{Power Supply}
+		\subsection{Microcontroller}
+		\subsection{Sensors}
+		\subsection{Data Storage}
+		\subsection{Connectors}
+	\section{Firmware}
+		\subsection{Design Goals} %Working title
+		\subsection{Functionality}
+		\subsection{Key Excerpts}
+	\section{Manufacture}
+		\subsection{PCB Design}
+			%Approach taken
+			%Picture of bare PCB
+		\subsection{Bill of Materials}
+		\subsection{Construction}
+	\section{Integration}
+		
+\chapter{Discussion}
+
+This may be one chapter or several.  Again, titles should be more
+informative than the above.
+
+You will almost certainly need diagrams to clarify your meaning.  The
+\LaTeXe\ \texttt{graphics} package allows the inclusion of PostScript
+graphics, as in \fig{flr1}.  The inclusion of \LaTeX\ \texttt{picture}
+graphics, as in FIGURE, requires no auxiliary packages and allows
+the mathematical formatting features of \LaTeX\ to be used in
+diagrams; but the \texttt{picture} files, unlike PostScript files,
+usually require manual editing.
+	\section{Validation of Design}
+		\subsection{Size \& Weight}
+		\subsection{Enclosure}
+		\subsection{Operational Lifetime}
+	\section{Incomplete Work}
+	\section{Specification Comparison}
+	\subsection{Future Work}
+
+\chapter{Conclusion}
+
+\ldots\ or perhaps the discussion should be a separate chapter.
+
+In any case, you will probably need to include tabulated results.
+\tab{tf2} illustrates the use of various \LaTeX\ environments to
+include a computer printout (plain text file) in a document.  The
+\texttt{verbatim} environment, which encloses the formatted text, is
+also useful for program listings.
+
+\chapter{User Manual}
+
+\appendix
+
+% Chapters after the \appendix command are lettered, not numbered.
+% Setting apart the appendices in the table of contents is awkward:
+
+\newpage
+\addcontentsline{toc}{part}{Appendices}
+\mbox{}
+\newpage
+
+% The \mbox{} command between two \newpage commands gives a blank page.
+% In the contents, the ``Appendices'' heading is shown as being on this
+% blank page, which is the page before the first appendix.  This stops the
+% first appendix from be listed ABOVE the word ``Appendices'' in the
+% table of contents.
+
+% \include appendix chapters here.
+
+\chapter{Dummy appendix}
+
+Appendices are useful for supplying necessary details or explanations
+which do not seem to fit into the main text, perhaps because they are
+too long and would distract the reader from the central argument.
+Appendices are also used for program listings.
+
+Notice that appendices are ``numbered'' with capital letters, not
+numerals.  When the \verb+\appendix+ command in
+\LaTeX~\cite[p.\,175]{lamport} is used with the \texttt{book} document
+class, it causes subsequent chapters to be treated as appendices.
+
+\chapter{Program listings}
+
+\section{First program}
+
+Some initial explanatory notes may precede the listing.
+
+\section{Second program}
+
+\section{Etc.}
+
+\chapter{Companion disk}
+
+If you wish to make some computer files available to your examiners,
+you can list and describe the files here.  The files can be supplied
+on a disk and inserted in a pocket fixed to the inside back cover.
+
+The disk will not be needed if you can specify a URL from which the
+files can be downloaded.
+
+\cleardoublepage
+
+
+\begin{thebibliography}{99}
+	\addcontentsline{toc}{chapter}{Bibliography}
+	\bibitem{Coudert05}
+	Yan Ropert-Coudert, Rory P. Wilson
+	\emph{Trends and Perspectives in Animal-Attached Remote Sensing},
+	Frontiers in Ecology and the Environment,
+	Vol. 3, No. 8 (Oct. 2005), pp. 437-444
+	
+	\bibitem{Freakley13}
+	Craig Freakley
+	\emph{BEE-UTE Board System Reference Manual},
+	University Of Queensland, June 2014
+	
+	\bibitem{Jurdak13}
+	Raja Jurdak et al
+	\emph{Camazotz: Multimodal Activity-Based GPS Sampling},
+	Information Processing in Sensor Networks,
+	ISBN: 978-1-4503-1959-1, pp. 67-68
+	
+	\bibitem{Bennett11}
+	William P Bennett et al
+	\emph{CraneTracker: A Multi-Modal Platform for Monitoring Migratory Birds on a Continental Scale},
+	The ACM 17th Annual International Conference on Mobile Computing and Networking, 2011.
+	
+	\bibitem{Marshall07}
+	Greg Marshal et al
+	\emph{An Advanced Solid-state Animal-borne Video and Environmental Data-logging Device('CRITTERCAM') for Marine Research},
+	Marine Technology Society Journal,
+	Vol. 41, Issue 2 (June 2007), pp. 31-38
+	
+	\bibitem{Mamm87}
+	The American Society of Mammologists (1987) \emph{Acceptable Field Methods of Mammalogy Preliminary guidelines prepared by the American Society of Mammalogists},
+	Journal of Mammalogy Supp. Vol 68, No. 4. November p.13.
+	
+	\bibitem{Brice02}
+	Peter H. Brice et al
+	\emph{Heat tolerance of short-beaked echidnas (Tachyglossus aculeatus) in the field},
+	University of Queensland, Jan 2002
+	
+	\bibitem{Ran12}
+	Nathan, Ran et al
+	\emph{Using tri-axial acceleration data to identify behavioral modes of free-ranging animals: general concepts and tools illustrated for griffon vultures.},
+	The Journal of Experimental Biology (2012), 215(6), 986$-$996. doi:10.1242/jeb.058602
+	
+	\bibitem{Shepard08}
+	Emily Shepard et al
+	\emph{Identification of animal movement patterns using tri-axial accelerometry.},
+	Endang Species Res 10:47-60 (2008)
+	
+	\bibitem{Lamprecht14}
+	Marnie Lamprecht et al
+	\emph{Multisite accelerometry for sleep and wake classification in children},
+	Physiol. Meas. (2014) doi:10.1088/0967-3334/36/1/33
+	
+	\bibitem{Terrill13}
+	Philip Terrill et al
+	\emph{Measuring leg movements during sleep using accelerometry: Comparison with EMG and piezo-electric scored events},
+	University of Queensland (July 2013) doi:10.1109/EMBC.2013.6611134
+	
+	\bibitem{Sandisk}
+	Sandisk Corporation. (2007, Jun.) \\
+	\emph{SanDisk SD Card Product Family - Product Manual.} [Online].\\ http://media.digikey.com/pdf/Data\%20Sheets/M-Systems\%20Inc\%20PDFs/SD\%20Card\%20Prod\%20Family\%20OEM\%20Manual.pdf
+	
+	\bibitem{TIUSB}
+	Texas Instruments. (2015, Mar) \emph{bq2407x 1.5-A USB-Friendly Li-Ion Battery Charger and Power-Path Management IC} [Online],
+	http://www.ti.com/lit/ds/symlink/bq24072.pdf
+	
+	\bibitem{TIBUCK}
+	Texas Instruments. (2012, Mar) 
+	\emph{High Efficiency Single Inductor Buck-Boost Converter with 1-A Switches} [Online],
+	http://www.ti.com/lit/ds/symlink/tps63030.pdf
+	
+	\bibitem{PIC24}
+	Microchip Technology Inc. (2011) 
+	\emph{PIC24FJ128GA310 Family - Reference Manual} [Online],
+	http://ww1.microchip.com/downloads/en/DeviceDoc/39996f.pdf
+	
+	\bibitem{AVAGOLIGHT}
+	Avago Technologies. (2007, Jan) 
+	\emph{APDS-9005 Miniature Surface-Mount Ambient Light Photo Sensor} [Online],
+	http://www.avagotech.com/docs/AV02-0080EN
+	
+	\bibitem{MEASPRESSURE}
+	Measurement Specialties. (2013, Feb)
+	\emph{MS5637-02BA03 Low Voltage Barometric Pressure Sensor}
+	[Online],
+	http://www.farnell.com/datasheets/1756129.pdf
+	
+	\bibitem{InvenMPU9150}
+	InvenSense Inc. (2013, Sep)
+	\emph{MPU-9150 Product Specification Revision 4.3} [Online],
+	http://www.invensense.com/mems/gyro/documents/PS-MPU-9150A-00v4\_3.pdf
+	
+	\bibitem{MICRAM}
+	Microchip Technology Inc. (2012)
+	\emph{512Kbit SPI Serial SRAM with SDI and SQI Interface - Reference Manual} [Online],
+	http://ww1.microchip.com/downloads/en/DeviceDoc/25155A.pdf
+	
+	\bibitem{ubloxGPS}
+	Swiss u-blox (2012)
+	\emph{MAX-6 u-blox 6 GPS Modules - Data Sheet} [Online],
+	https://www.u-blox.com/images/downloads/Product\_Docs/MAX-6\_DataSheet\_\%28GPS.G6-HW-10106\%29.pdf
+	
+	\bibitem{Carroll10}
+	Aaron Carroll et al \emph{An Analysis of Power Consumption in a Smartphone}.
+	USENIX Annual Technical Conference 2010
+	
+	\bibitem{NXPI2C}
+	NXP Semiconductors (2014, Apr)
+	\emph{I2C-bus specification and user manual} [Online],
+	http://www.nxp.com/documents/user\_manual/UM10204.pdf
+	
+	\bibitem{UQRISK}
+	P. a. F. Division. (2015). Risk Assesment Form. [Online]. http://www.pf.uq.edu.au/pdf/SafetyForms/frm\_PF388.pdf.
+\end{thebibliography}
+
+\end{document}
