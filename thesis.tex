@@ -434,7 +434,8 @@ In light of this scenario, there is a significant research potential in such a d
 			This damage is a significant factor for this project. When lithium, and a few other chemistries, cells are damaged, they can sometimes undergo a state called thermal runaway, where the entirety of their energy is converted to heat in a few seconds. This can be quite violent and appropriate protections need to be taken into account to stop this from happening to any batteries placed on an animal.
 
 \chapter{Design Overview}
-
+	NOTE: Many circuit schematics to go in here, might be a bit bare figure wise at the moment. Also missing some explicit discussion on circuitry specifics but we'll see how we're going for space when more is complete. \\ \noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+	\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 	\section{Hardware} \label{sec:components}
 		The general approach to component selection for this project has been a careful balancing act of size, power consumption and in some cases weight. Choosing the best devices to start from was absolutely essential in designing a system to meet the specifications. A few of these were selected over a few revisions; initially the project was implemented on small custom PCB's in order to test functionality. \\
 		
@@ -509,46 +510,186 @@ In light of this scenario, there is a significant research potential in such a d
 		The BQ24072 allows for a user to charge the battery onboard or optionally power the device from the USB bus. This enables a potential fixed position application or an alternate, 5 volt source to power the device, although battery voltage tracking would not be available. In addition, the BQ24072 also has a number of thermal protection and short-circuit protections which will prove themselves essential in the rugged environment of the Australian outback. \\
 		
 		The TPS63030 is a fairly standard buck-boost switching regulator with a relatively flat efficiency curve of around 80\% for most of the operating range of currents. There is also around a 50uA quiescent current, which is very small for the price range of the device. The TPS63030 retails for approximately \$6 AUD and most power supplies that can provide higher efficiencies across the incredibly large range this device will have will be too costly for this project. \\
+		
+		
+		%TALK ABOUT SELECTION OF PASSIVES
+		Programming the output voltage on the TPS63030 is remarkably simple; Texas Instruments provide all the relevant equations and best practices for layouts and component specifications. The feedback voltage is fixed to around 500mV inside the device, although in practice this varied slightly depending on the load attached, which resulted in some fine tuning on the finished product. See Appendix [!REF] for detailed calculations and information about selection of passives and their specifications.
+		
+		\subsection{Batteries}
+		Now that the components are selected, it is appropriate to draft a power budget to better inform the size of battery needed. It has already been decided to go with lithium polymer batteries, which are significantly lighter per unit charge than most other types which should allow maximum flexibility. \\
+		
+		Table \ref{tab:PWR} shows the required battery sizes for various power management strategies. The three strategies are no control (N.C.), basic control (B.C.) and advanced control (A.C.) and refer to the extent to which duty cycling certain components is performed. Note that an analysis like this will not factor in things like inefficiencies, quiescent currents,  self discharge etc so these results more serve to provide an upper bound on performance. Actual performance could be as low as half of these predicted values.\\
+		
+		\begin{table}[H]
+			\centering
+			\begin{adjustbox}{max width=\textwidth}
+				\rowcolors{2}{white}{lightgray}
+				\begin{tabular}{c | c | c | c | c | c }
+					Device & Active Current & Sleep Current & N.C. Duty Cycle & B.C. Duty Cycle & A.C. Duty Cycle\\
+					\hline
+					PIC24F          & 150$\mu$A & 410nA  & 100\% & 20\%  & 10\%  \\
+					MAX6 GPS        & 12mA      & -      & 100\% & 100\% & 5\%   \\
+					Light Sensor    & 400$\mu$A & -      & 100\% & 100\% & 10\%  \\
+					Accelerometer   & 925$\mu$A & 3$\mu$A& 100\% & 20\%  & 10\%  \\
+					Pressure Sensor & 0.6$\mu$A & -      & 100\% & 100\% & 10\%  \\
+					$\mu$SD Card    & 50mA      & -      & 25\%  & 10\%  & 5\%   \\
+					\hline
+					\bf BATTERY REQUIRED & - & - & 8.72A-h & 7.6A-h & 1.3A-h\\
+				\end{tabular}
+			\end{adjustbox}
+			\caption{Battery requirements by management method}
+			\label{tab:PWR}
+		\end{table}		
+		
+		It is immediately clear that some heavy management of duty cycle is necessary for this project to work correctly. A battery of about 8A-h would be incredibly expensive and far too heavy for the application. 1.2A-h lithium polymer batteries are relatively common, come in a variety of sizes and weigh about 20 grams. Alternatively, to improve the battery life, a 2A-h battery can be connected which weighs 40 grams.
+		
 		\subsection{Connectors}
 		A frequently overlooked component in system design is user end connectors being of poor quality or being of a simple 0.1 inch pitch unkeyed connector. After seeing many projects go up in flames it was apparent that small keyed connectors were needed. \\
 		
 		A standard microUSB type B plug was used for the battery charging, due to its small size and being a common cable throughout the world. A JST connector was used for the battery input, to prevent any users from accidentally connecting it backwards and also allowing the system to operate with any single cell lithium based battery which will expand the possible applications significantly as the user won't be required to resolder anything to change the battery. 
 	\newpage
 	\section{Firmware}
-		\subsection{Design Goals} %Working title
+		The approach to firmware was primarily iterative; an initial plan was laid out early in the project's life but this was repeatedly updated and refined in the face of new information or implementation subtleties. The choice to go without an embedded operating system was not taken lightly; an embedded operating system can save the developer having to delve into the specifics of a microcontrollers architecture. Ultimately it was decided that this benefit was not worth the inevitable lack of flexibility and operating overhead. \\
+		
+		Fundamentally the system had a fairly straightforward task: during each sampling period, turn on all the sensors, give them time to settle, take the measurements then push the data out to the multilevel cache. The original high level flowchart is shown in Figure \ref{fig:FWD}
+		
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=11cm]{Figures/FWD.png}
+			\caption{Firmware Flowchart}
+			\label{fig:FWD}
+		\end{figure}		
+
+		\newpage
+		\subsection{Design \& Implementation} %Working title
+		The design was always centered around readability and, while that may be highly subjective, a large effort was put forward to name that. For structure and flow control the OpenBSD kernel maintainers style guide \cite{BSDstyle} was used, as it is well suited to such a low level environment. \\
+		
+		Gonna work on this part more once I've cleaned up the source code a little, its still a bit messy.
 		\subsection{Functionality}
 		\subsection{Key Excerpts}
 	\newpage
 	\section{Manufacture}
+		Manufacture of miniaturised designs is always a challenge and can prove difficult both in producing PCB artwork and physically constructing the device. Since this is a prototype, everything had to be hand constructed which has somewhat limited miniturisation; namely in that BGA based footprints cannot be reasonably used. 
+		
 		\subsection{PCB Design}
+			The largest concern during PCB design was size, as the size of the device will limit the possible cases used and, as the boards and the copper within are quite heavy, can have a noticeable impact on final system weight. \\
+			
+			%Talk about board physical dimensions?
+			The board was designed to have roughly the same physical dimensions as a standard USB stick but this had to be increased slightly to 20mm x 60mm for practicality reasons. \\
+			
+			The PCB artwork was developed using the Altium Designer suite of tools and, by the last iteration, was comprised of 6 layers; four signal layers and two plane layers. This was a necessary design decision to not only shield components from electromagnetic interference (EMF) from components on the other side but to also act as a heatsink for the large transient currents that could be experienced by the system. \\
+			
+			There was a substantial effort wherever possible to reduce EMF however on such a small board, some concessions had to be made. The power section of the board, with its heavy switching noise, was separated away from the sensors and the microcontroller. The serial SRAM will spend most of its time idle, so during the sampling period there should be relatively little EMF and this was exploited by placing the bulk of the sensors on the opposite side of the board. \\
+			
+			The largest concession made was with the GPS module. It is placed directly underneath the microcontroller. This was the primary motivation for the two plane layers and is further alleviated by the small airgap between the PCB and the microcontroller. Despite this a completely isolated section of board was allowed for the antenna so the actual performance should not be hindered in any noticeable way. \\
+			
+			Wherever appropriate, the smallest passives were used. This meant 0402 footprints for every passive except for the power inductors and the user LEDs, for specification and visibility reasons respectively. The picture shown in Figure \ref{fig:PCB} shows the final PCB with the control circuitry highlighted in green, the sensing circuitry in blue and the power supply circuitry in red. \\
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=9cm]{Figures/PCB.PNG}
+			\includegraphics[width=9cm]{Figures/PCBMarkup.PNG}
+			\caption{Final PCB}
+			\label{fig:PCB}
+		\end{figure}		
+			
 			%Approach taken
-			%Picture of bare PCB
+			%Picture of bare PCB with separation pointed out
 			%Passives (0402)
 		\subsection{Bill of Materials}
+		TODO: Must format nicely
 		\subsection{Construction}
+		There are a number of practical difficulties with construction that need to be fixed in subsequent iterations but in the current state, this needs to be done to be able to build the device. \\
+		
+		Some devices on the top side have a thermal pad directly underneath them. This helps with a stable ground connection and reduces self heating but it also prevents the use of any glues. Since these components are QFN footprint; they can not be reliably soldered by hand. The issue arises on the reverse side where there is a QFN style footprint on the antenna which is only rated to go through the oven once. \\
+		
+		This means that the only way to reliably solder the device is to use non-leaded solder paste on the top side, which has a higher melting point, and apply the top side components first. Then use leaded solder, with a much lower melting point, on the reverse side. This will stop the solder joints remelting and any components falling off the device during the soldering process.
+		
+		%Maybe talk about iterations here?
 	\section{Integration}
+	The purpose of this design is to be used in a wide variety of entirely uncontrolled, and very hostile, environments. As such for the device to survive for longer than a few moments it must be protected by a case. This case would need to be waterproof and shock resistant as well as quite small. \\
+	
+	Initially several options were drafted to construct a case out of polyethylene from a 3d printed mold fitted with an off the shelf o-ring to prevent moisture seeping in. This case would have weighed less than 5 grams and would have vastly improved the size of battery connected to the device. \\
+	
+	Unfortunately due to a number of practicality and time issues a completely off the shelf solution was sought. The ideal case in this scenario would be a small specimen container commonly found in biology labs. The screw top would allow for a relatively waterproof design to start with, and a small o-ring would improve it significantly. A picture of possible enclosures is shown in Figure \ref{fig:CASE}.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=9cm]{Figures/CASE.JPG}
+		\caption{Candidate cases}
+		\label{fig:CASE}
+	\end{figure}			
+
+	%Talk about cases here
+	NOTE: Maybe talk about which cases could and could not be used? \& Talk about actually putting everything together and the challenges within (Definitely do this, need to detail PCB iterations and breadboard pictures)\\
+	
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=6cm]{Figures/finalpt1.png}
+			\caption{Revision 2 of the Design}
+			\label{fig:FIN}
+		\end{figure}	
+		
+	\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+	\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 		
 \chapter{Discussion}
 
 	\section{Validation of Design}
+		The design and construction process for this project was iterative, as most engineering designs tend to be, and went through several versions before some concrete testing could be done. \\
+		
+		There were three main targets to achieve with this project: \\
+		\begin{enumerate}
+			\item Echidna appropriate volume and total weight less than 50 grams
+			\item An enclosure rated at IP67 or better
+			\item An operational lifetime of a week or better
+		\end{enumerate} 
+		Due to a number of development issues involving time constraints and component sourcing not all of the functionality could be completed but the design does satisfy these three targets or provide significant evidence that they would be satisfied.\\
 		\subsection{Size \& Weight}
+		The final PCB produced, which was very similar to \ref{fig:FIN} but with a rotated battery input and some miscellaneous fixes to usability, weighs 6.55 grams.
+		
+		The final container used, due to an oddly shaped battery, is the red capped container in Figure \ref{fig:CASE}. This container on its own weighs 27.65 grams. \\
+		
+		The battery, as mentioned before, weighs 22.6 grams. This brings the total system weight to 56.85 grams (measured, not calculated). This is slightly more than the initial requirements but a more appropriate case could alleviate this issue significantly. This would allow for any animal around 1.1kg or heavier to be fitted out with this device \cite{Mamm87}. \\
+		
+		It is worth noting that by using the 2A-h battery, the total system weight is 72.70 grams. This is significantly heavier than planned but is a good demonstration of the flexibility of design. This would allow for any animal around 1.5kg and heavier to be fitted out with this device. \\
+		
+		Both of these implementations would be able to be placed on most echidnas, but care would have to be taken to not place it on an echidna too light. It may not achieve the stated goals exactly as described but the weight is within the acceptable bounds for the primary application.
 		\subsection{Enclosure}
+		TODO: IP67 Tests
 		\subsection{Operational Lifetime}
+		
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=14cm]{Figures/input.png}
+				\caption{$\mu$Tracker Input Current \& Average DC Equivalent}
+				\label{fig:input}
+			\end{figure}	
+			
+		\subsection{Sensor Accuracy}
+		TODO: Accuracy Tests
+		\subsection{PCB}
+		The final PCB submitted was almost feature complete except for two small errors. Firstly the $\mu$SD card header footprint was reversed, and had to be bodged manually and the control pin for providing power to the $\mu$SD card was connected to an input only pin of the PIC24F. Fortunately this pin was right next to an unused output so a small solder bridge was all that was needed to correct it. \\
+		
+		Since submission these two issues have been fixed and there has been a separation of power grounds and the rest of the circuit, to minimise switching noise. \\
+		
 	\section{Incomplete Work}
+	Unfortunately, due to a combination of several issues, some features and sections of the project could either not be finished, or not be tested. Where otherwise mentioned, every entry into this section implicitly  should appear in Section \ref{sec:FUTURE}, "Future Work".
+	
+	\subsubsection{GPS Module}
+	\subsubsection{Proof of $\mu$SD Card}
+	\subsubsection{Full Lifetime Measurement}
+	
 	\section{Specification Comparison}
-	\subsection{Future Work}
+	\section{Future Work} \label{sec:FUTURE}
 
 \chapter{Conclusion}
 
-\ldots\ or perhaps the discussion should be a separate chapter.
-
-In any case, you will probably need to include tabulated results.
-\tab{tf2} illustrates the use of various \LaTeX\ environments to
-include a computer printout (plain text file) in a document.  The
-\texttt{verbatim} environment, which encloses the formatted text, is
-also useful for program listings.
+\ldots 
 
 \chapter{User Manual}
+
+\ldots
 
 \appendix
 
@@ -733,6 +874,10 @@ files can be downloaded.
 	\bibitem{max17}
 	Maxim Integrated (2012)
 	\emph{Compact, Low-Cost 1S/2S Fuel Gauges} [Online], https://datasheets.maximintegrated.com/en/ds/MAX17040-MAX17041.pdf
+	
+	\bibitem{BSDstyle}
+	OpenBSD (2015)
+	\emph{style — Kernel source file style guide (KNF) - Manual Page} [Online], http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man9/style.9?query=style\&sec=9
 	
 \end{thebibliography}
 
