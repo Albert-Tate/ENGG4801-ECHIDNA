@@ -224,16 +224,16 @@ institution.
 
 \chapter{Acknowledgments}
 
-Acknowledge your supervisor, preferably with a few short and specific
-statements about his/her contribution to the content and direction of
-the project.  If you collaborated with another student, acknowledge
-your partner's contribution, including any parts of the thesis of
-which s/he was the principal author or co-author; this information can
-be duplicated in footnotes to the chapters or sections to which your
-partner has contributed.  Briefly describe any assistance that you
-received from technical or administrative staff.  Support of family
-and friends may also be acknowledged, but avoid sentimentality---or
-hide it in the dedication.
+%Acknowledge your supervisor, preferably with a few short and specific
+%statements about his/her contribution to the content and direction of
+%the project.  If you collaborated with another student, acknowledge
+%your partner's contribution, including any parts of the thesis of
+%which s/he was the principal author or co-author; this information can
+%be duplicated in footnotes to the chapters or sections to which your
+%partner has contributed.  Briefly describe any assistance that you
+%received from technical or administrative staff.  Support of family
+%and friends may also be acknowledged, but avoid sentimentality---or
+%hide it in the dedication.
 %Acknowledge UWA, Craig Freakley for BeeBoard
 
 \cleardoublepage
@@ -241,8 +241,9 @@ hide it in the dedication.
 \chapter{Abstract}
 
 % Yeah really need to like actually redo this.
+needs to be rewritten\\
 
-The use of biologging for remote sensing of animal behavior has had a long history and many novel applications \cite{Coudert05}. A key datatype in recent years has been tri-axial accelerometry \cite{Ran12,Shepard08} which can be used to accurately discern between different movement types and postures in animals or humans \cite{Lamprecht14,Terrill13}. Despite the widespread use of biologging for animal research, most solutions are either very heavy \cite{Marshall07} or, when light, rely on existing infrastructure in the environment like radio base stations \cite{Jurdak13} or cell-phone towers \cite{Bennett11}. In this report a project is proposed to redesign an existing board, the BEE-UTE Board \cite{Freakley13} to be smaller, more efficient and have a longer operating lifetime. This will allow the board to be used on a larger variety of animals and allow for greater time between recaptures of the animal for data retrieval which will have both monetary benefits and less impact on the welfare of the animal. The proposed project will be able to measure light intensity, tri-axial accelerometry, temperature, air pressure and GPS position in a package with a total weight of less than 50 grams including battery and a board size of less than 2.5cm by 2.5cm which will operate at 100Hz sampling rate with selective GPS readings for at least 14 days. The GPS readings will activate when significant activity is measured, calculated by a simple moving average (SMA) on the accelerometer data. The low power functionality will be achieved by a novel power control scheme and the use of power efficient volatile memory, SRAM, to allow much larger bulk writes to non-volatile memory (microSD card).
+%The use of biologging for remote sensing of animal behavior has had a long history and many novel applications \cite{Coudert05}. A key datatype in recent years has been tri-axial accelerometry \cite{Ran12,Shepard08} which can be used to accurately discern between different movement types and postures in animals or humans \cite{Lamprecht14,Terrill13}. Despite the widespread use of biologging for animal research, most solutions are either very heavy \cite{Marshall07} or, when light, rely on existing infrastructure in the environment like radio base stations \cite{Jurdak13} or cell-phone towers \cite{Bennett11}. In this report a project is proposed to redesign an existing board, the BEE-UTE Board \cite{Freakley13} to be smaller, more efficient and have a longer operating lifetime. This will allow the board to be used on a larger variety of animals and allow for greater time between recaptures of the animal for data retrieval which will have both monetary benefits and less impact on the welfare of the animal. The proposed project will be able to measure light intensity, tri-axial accelerometry, temperature, air pressure and GPS position in a package with a total weight of less than 50 grams including battery and a board size of less than 2.5cm by 2.5cm which will operate at 100Hz sampling rate with selective GPS readings for at least 14 days. The GPS readings will activate when significant activity is measured, calculated by a simple moving average (SMA) on the accelerometer data. The low power functionality will be achieved by a novel power control scheme and the use of power efficient volatile memory, SRAM, to allow much larger bulk writes to non-volatile memory (microSD card).
 
 \tableofcontents
 
@@ -274,36 +275,37 @@ The use of biologging for remote sensing of animal behavior has had a long histo
 \chapter{Introduction}
 Echidnas are small native animals of Australia and New Guinea. The echidna is from the order monotremata meaning, in non technical terms, that it is a mammal that lays eggs. Monotremes are a unique order of animals with only five extant species and very little is known about their physiological response to environment stressors.\\ 
 
-Generally speaking, echidnas struggle with external temperatures greater than about 35 degrees celsius \cite{Brice02}. This suggested that their thermoregulation came from an external source much like cold blooded animals. However recent studies have suggested that this might not be the case and the general assumption is that echidnas employ a combination of both strategies, behavioural and physiological, to manage their body temperature. This has lead to a significant research interest in being able to track these animals in the wild.\\
+Generally speaking, echidnas struggle with external temperatures greater than about 35 degrees celsius \cite{Brice02}. This suggested that their thermoregulation came from an external source much like cold blooded animals. However recent studies have suggested that this might not be the case and now the general assumption is that echidnas employ a combination of both strategies, behavioural and physiological, to manage their body temperature \cite{Brice02}. This has lead to a significant research interest in being able to track these animals in the wild.\\
 
-Due to strict ethics regulations mandating extremely low weights in biologging electronics \cite{Mamm87}, current existing biologging devices find themselves regularly unsuitable for such an application, usually limited by an extremely short battery life. Modern technologies and methods should now allow for a new, significantly smaller, lighter, more robust and more power efficient biologging device to be created. \\
+Due to strict ethics regulations mandating extremely low weights in biologging electronics \cite{Mamm87}, current existing biologging devices find themselves regularly unsuitable for such an application, usually limited by an extremely short battery life. Modern technologies and methods may have the ability to facilitate significantly smaller, lighter, robust and more power efficient biologging device to be created. \\
 
-These biologging devices would not be limited to just echidnas however; there are a significant number of animals in the same weight class that are poorly understood. Such a device would allow large studies of predator-prey dynamics in the wild, tracking migratory animals in extreme environments and remote monitoring of unfenced livestock. \\
+These biologging devices are designed in order to track the behaviour of the animal in its natural habitat. Things like movement, temperature, physical location and current light intensity are all commonly used on such platforms. Some platforms, such as the CritterCam \cite{Marshall07}, also record more advanced parameters of the environment like audio and video. \\
 
-In light of this scenario, there is a significant research potential in such a device being developed; an incredibly lightweight and power efficient tracker capable of extended operation in harsh environments.
+These biologging devices would not be limited to just echidnas however; there are a significant number of animals in the same weight class that are poorly understood. Such a device would also allow studies of things such as predator-prey dynamics in the wild, tracking migratory animals in extreme environments and observing crowd dynamics in unfenced livestock. \\
+
+In light of this scenario, there is a significant research potential for such a device being developed; a tracker with a weight of less than 100 grams with operating lifetimes measured in days, perhaps weeks, rather than hours.
 
 \chapter{Background}
 	\section{Echidna Physiology \& Behaivour}
-	Echidna thermoregulation is poorly understood. There is no complete consensus on how they do it \cite{Brice02} but current studies suggest it is a combination of behaivoural patterns, like laying in the sun as a cold blooded animal would do, and physiological mechanisms, like any warm blooded creature.\\ 
+	Echidna thermoregulation is poorly understood. There is no complete consensus on how it is done \cite{Brice02} but current studies suggest it is a combination of behaivoural patterns, like laying in the sun as a cold blooded animal would do, and physiological mechanisms, like any warm blooded creature.\\ 
 	
-	Their internal body temperature has been measured from as high as 35\textdegree C and as low as 5\textdegree C during hibernation. The echidna will usually seek shelter in hot conditions and is not known to sweat or pant. During autumn and winter, the echidna will generally go into a hibernative state, severely reducing activity. \\
+	Their internal body temperature has been measured from as high as 35\textdegree C and as low as 5\textdegree C during hibernation. The echidna will usually seek shelter in hot conditions and is not known to sweat or pant. During autumn and winter, the echidna will generally go into a hibernative state, severely reducing activity. While the echidna are active however, they very seldom have interactions with other creatures. They are generally considered to be solitary creatures. \\
 	
-	While the echidna are active however, they very seldom have interactions with other creatures. They are generally considered to be solitary creatures. \\
+	Despite their solitary lifestyle, when they are not in hibernation they can cover significant distances within a single day, swim about as well as most mammals and will dig into ant and termite nests for food and nest in small burrows and hollowed out logs. \\
 	
-	Despite their solitary lifestyle, when they are not in hibernation they can cover significant distances within a single day, swim about as well as most mammals and will dig into ant and termite nests for food. \\
-	
-	Despite the diet of ants, the echidna can grow up to 6kg in weight for males and around 4.5kg for females. The echidna is only about 30-45cm long in the body which makes it a relatively dense creature. \\
+	Despite the diet of ants and other insects, the echidna can grow up to 6kg in weight for males and around 4.5kg for females. The echidna is only about 30-45cm long in the body which makes it a relatively dense creature. \\
 
 	The echidna is found all around Australia and in the southern mountains of New Guinea and as such, it has managed to survive in a range of climates. It has been found in both snowy regions and dry deserts. They do not have fixed shelter and tend to wander about, which makes population studies difficult. \\
 	
+	Given this information, in order to properly understand what the echidna is doing at any given time a number of parameters must be sensed. In order to detect behaviours that could increase their body temperature, like moving around and basking in the sun, it is necessary to have some form of movement sensor and a light sensor. To understand if echidnas have these reactions to increased body temperature, environment temperature or both, it will be necessary to have an external temperature sensor and a sub dermal one. The selection, specification and implementation of the sub dermal temperature sensor is however out of the scope of this project.
 	%Due to a lack of suitable biologging platforms, existing studies have generally been done outside of the native habitat, which may have limited the accuracy of any results.
 	
 	\section{Product Specification}
-	In light of this knowledge from the previous section, it is now possible to know what the biologging device should do and why. The key performance characteristic will be operational lifetime as there is an existing product \cite{Freakley13} that otherwise meets the specifications, but only lasts 40 hours in the wild. \\
+	In light of this knowledge from the previous section, it is now possible to know what the biologging device should do and why. The key performance characteristic will be operational lifetime as there is an existing product \cite{Freakley13} that otherwise meets the specifications, but only lasts 40 hours in the field. \\
 	
 	The device needs to be extremely light to comply with ethics regulations \cite{Mamm87} usually being around 5\% of the body weight of the creature. In addition to this it must be extremely robust, it needs to handle the large temperature swings found in deserts, the enclosure must be waterproof and handle most low speed impacts. \\
 	
-	In order to properly track any behaviour the echidna may exhibit in order to change its body temperature, the enclosure must be transparent, to allow for light sensing. Rudimentary movement sensing also needs to be used. The device should be able to track absolute position, where appropriate, using a GPS module. Tracking internal temperature can not be reasonably done with a board solution and will be done with another device, the specification and selection of which is out of the scope of this design. However the environment temperature will be sensed. \\
+	In order to properly track any behaviour the echidna may exhibit in order to change its body temperature, the enclosure must be transparent, to allow for light sensing. Rudimentary movement sensing also needs to be used. The device should be able to track absolute position, where appropriate, using a GPS module. Tracking internal temperature can not be reasonably done with a board solution and will be done with another device, the specification and selection of which is out of the scope of this design. However the environmental temperature will be sensed. \\
 	
 	Due to the hibernative nature of the echidna, the onboard firmware should have some rudimentary analysis on the data to allow it to change sampling rates depending on the level of activity, to best extend the battery life. \\
 	
@@ -316,7 +318,7 @@ In light of this scenario, there is a significant research potential in such a d
 				Description & Specification\\
 				\hline
 				Max system weight & 50g \\
-				Max board size & 1500mm$^{2}$  \\
+				Max board size & 40mm x 40mm  \\
 				Operational lifetime & 7 days \\
 				Max material cost & \$150 AUD \\
 				Robustness & IP67 \\
@@ -329,9 +331,9 @@ In light of this scenario, there is a significant research potential in such a d
 	
 	\section{Previous Solutions}
 		\subsection{BEE-UTE Board}
-			In previous studies of echidna movements, the BEE-UTE board was used \cite{Freakley13} which was developed at the University of Queensland (UQ). It was designed as a general base board for biologging. The board was 625mm$^{2}$ and had a 32bit microcontroller onboard as well as sensors for acceleration, magnetic heading, angular acceleration, pressure and temperature. The board also provided headers for future expansion. Further details can be seen in Figure \ref{fig:BEE}. \\
+			In previous studies of echidna movements, the BEE-UTE board was used \cite{Freakley13} which was developed at the University of Queensland (UQ). It was designed as a general purpose base board for data logging. The board was 22.5mm x 22.5mm and had a 32bit microcontroller onboard as well as sensors for acceleration, magnetic heading, angular acceleration, pressure and temperature. The board also provided headers for future expansion. Further details can be seen in Figure \ref{fig:BEE}. \\
 			
-			 The board had an incredibly powerful onboard microprocessor and was very expandable whilst retaining a relatively small footprint. However this design philosophy lead to a number of limitations in the context of small animal biologging. The most significant of these limitations is the short battery life, only 40 hours in the field, when outfitted with a GPS module. The onboard processor is overpowered for the application and any broken sensors will cause the system to endlessly poll that sensor, halting data acquisition, although this problem can be solved with a firmware patch. \\
+			 The board had an incredibly powerful onboard microprocessor and was very expandable whilst retaining a relatively small footprint. However this design philosophy lead to a number of limitations in the context of small animal biologging. The most significant of these limitations is the short battery life, only 40 hours in the field, when also powering an external GPS module. The onboard processor is overpowered for the application and any broken sensors will cause the system to endlessly poll that sensor, halting data acquisition, although this problem can be solved with a firmware patch. \\
 			 
 			  A less generalized approach to this specific design problem is needed for this project however this resource will be incredibly valuable reference throughout development. The power management electronics and uSD interface, including power transistors, are all very applicable to this project and will likely be incorporated.
 			\begin{figure}[H]
@@ -344,7 +346,7 @@ In light of this scenario, there is a significant research potential in such a d
 		\subsection{Camazotz}
 			The Camzotz Board, developed by CSIRO \cite{Jurdak13}, is a small tracking board for fruit bats that is very similar in scope to the project described here but has a few key deviations. The board has onboard sensors for GPS, accelerometry, pressure, temperature and acoustic signals, see Figure \ref{fig:Camazotz} for details. \\
 			
-			With some very clever duty cycling of peripheral sensors and the use of small solar panels the board is energy neutral, which means the board will operate until device failure; battery life is effectively infinite in most cases. A novel method was used to power the sensors; all the power was drawn directly from I/O ports of the microcontroller which allowed the board to completely turn off certain devices when they weren't being used, a significant energy saving compared to putting these devices in sleep mode. Communication of data was done via radio base stations located in known nesting roosts. \\
+			With some very clever duty cycling of peripheral sensors and the use of small solar panels the board is energy neutral, which means the board will operate until device failure; battery life is effectively infinite in most cases. A novel method was used to power the sensors; all the power was drawn directly from I/O ports of the microcontroller which allowed the board to completely turn off certain devices when they weren't being used, a significant energy saving compared to putting these devices in sleep mode. Communication of data was accomplished via radio base stations located in known nesting roosts. \\
 			
 			Despite this being very similar in scope to this project, there are a few design decisions that ultimately make it unsuitable for this application. The solar panels would interfere with the echidnas attempts to warm up in the sun and the lack of any fixed nest for the echidna makes the radio base station approach not appropriate. \\
 			
@@ -362,7 +364,7 @@ In light of this scenario, there is a significant research potential in such a d
 			 
 			 There are not many specific design problems solved by this product for the primary application, even though it serves the same purpose. \\ 
 			 
-			 This device illustrates an underlying issue with the literature and the general progression of the art; a movement has occurred towards 'smart' nodes that are able to communicate with each other and surrounding networks, like the cellular one. Unfortunately in the Australian outback these networks are generally not available as Echidnas are not particularly social or return to the same location, making any radio reliant methods unreliable at best for this application.
+			 This device illustrates an underlying issue with the literature and the general progression of the art; a movement has occurred towards 'smart' nodes that are able to communicate with each other and surrounding networks, like the cellular one. Unfortunately in the Australian outback these networks are generally not available as Echidnas are not particularly social or return to the same location, making any radio reliant methods unreliable at best for this application \cite{Brattstrom73}.
 			 
 		\newpage
 		\subsection{CritterCam}
@@ -372,23 +374,25 @@ In light of this scenario, there is a significant research potential in such a d
 			
 			 Some of the biggest successes of the Crittercam are its incredible robustness and ability to actively monitor battery power and change modes when the battery is critical (when low battery is detected, the device will become a radio beacon to aid retrieval). However the reliance on video data is a relic from the earlier models and, compared to the large power cost, is of little use in a lot of research situations.\\
 			 
-			  Unfortunately the weight of the unit is 1.1kg which is almost heavier than some of the animals the sensor board proposed in this report could be deployed on. This is one of the earliest commercial remote sensing applications and appears here mostly for completeness as the style of approach to the problem, with no reliance on external infrastructure, is aligned with the goals for this project however miniaturizing the technology to such an extent has historically been very difficult.\\
+			  Unfortunately the weight of the unit is 1.1kg which is similar in weight to some of the animals the sensor board proposed in this report could be deployed on. This is one of the earliest commercial remote sensing applications and appears here mostly for completeness as the style of approach to the problem, with no reliance on external infrastructure, is aligned with the goals for this project however miniaturizing the technology to such an extent has historically been very difficult.\\
 			  
 			  The device does show a number of novel design decisions which are appropriate for this project. Since it has been such a long running project, the system engineering has been extensively honed and all the space available has been used well. 
 	\newpage
 	\section{Technical Background}
-		Many useful lessons can be taken from the previous products that exist in the art however these alone do not create an entire solution. This section will provide some technical background that is necessary to both fulfill the requirements set out by this project and to adequately justify a number of design decisions. This is not by any means an exhaustive background and some familiarity with embedded systems and electronics design is assumed. \\
+		Many useful lessons can be taken from the previous products that exist in the art however these alone do not create an entire solution for this application. This section will provide some technical background that is necessary to both fulfill the requirements set out by this project and to adequately justify a number of design decisions. This is not by any means an exhaustive background and some familiarity with embedded systems and electronics design is assumed. \\
 		
-		 This section only exists to inform the reader of the relevant technologies, uses and other considerations that need to be taken into account to design an embedded system for this application. For further details on exact component selection and system architecture see section \ref{sec:components}. 
+		 This section only exists to inform the reader of the technologies that need to be understood to be able to justify the following design decisions. For further system details and justification of exact components see section \ref{sec:components}. 
 	%Remember: This section is about technology choices, not specific parts
 		\subsection{Microcontrollers}
 		A microcontroller is a general purpose computing device that can make basic calculations and communicate with external peripherals like sensors and memory modules. In general these can consume significant amounts of power with the PIC32 on the BEE-UTE Board \cite{Freakley13} drawing as much as 30mA in an active state \cite{PIC32}. \\
 		
 		In the context of this application, relatively little processing power is needed, as there is only a small amount of computations occurring onboard. What is required is an extremely low current draw, small physical size without relying on Ball Grid Array (BGA) footprints and a bevy of peripheral communication abilities. 
+		
 		\subsection{Movement Sensing}
 			Detecting animal movement usually requires the synergy of several sensors. Classifying movement states and localizing position are typically done separately. Movement is usually sensed by measuring acceleration of which there are two main approaches; measuring the acceleration along an axis (accelerometer), or measuring rotational acceleration across axes (gyroscope). Gyroscopes typically consume more power than accelerometers by a factor of 10 or more \cite{InvenMPU9150} so for this, low power, application, accelerometers will be used to measure movement. \\
 			
 			Accelerometers are devices which measure acceleration along an axis. The vast majority of accelerometers have 3 orthogonal axes of measurement. Tri-axial accelerometry has been used as a primary data source in the past, as movement states can be classified from just this data alone \cite{Ran12, Shepard08} and can be much more accurate and less invasive than equivalent measuring methods for determining movement states \cite{Terrill13, Lamprecht14}. 
+			
 		\subsection{GPS Module}
 			Global Positioning System (GPS) modules are devices which interact with satellites to determine their exact position. Implementation specifics vary but the fundamental concept is for the module to establish communication with four or more satellites using an external antenna and the align the internal clock with them to localize its position. \\
 			
@@ -411,14 +415,14 @@ In light of this scenario, there is a significant research potential in such a d
 		\subsection{Power Supply}
 			Most electronic devices are designed with very specific input voltages to power them; small deviations can damage the device permanently. Battery voltages also decrease the longer they are used. Because of this, power supplies are used to regulate the voltage being supplied. \\
 			
-			There are two major kinds of power supplies being used; linear and switching regulators \cite{TI2011}. Linear regulators use a transistor in the active region of operation to behave as a variable resistor, reducing the voltage. Because of this design, linear regulators can only ever output a lower voltage than their input. This design also incurs a significant amount of energy loss as the input and output currents are the same but the voltage changes significantly. \\
+			There are two major kinds of power supplies being used in modern systems; linear and switching regulators \cite{TI2011}. Linear regulators use a transistor in the active region of operation to behave as a variable resistor, reducing the voltage. Because of this design, linear regulators can only ever output a lower voltage than their input. This design also incurs a significant amount of energy loss as the input and output currents are the same but the voltage changes significantly. The main benefits that come with linear regulators is a lack of noise and a significantly simpler design. \\
 			
-			Switching regulators are more complex and usually use a reference waveform and a comparator to vary the duty cycle of an output stage transistor which is then fed into a filtering circuit to stabilize the voltage into a specified DC value. They can also step up voltages from lower ones to higher ones. Because of this added complexity and the generation of the reference waveform, they tend to consume a small amount of current, called the quiescent current, even when not supplying energy to the circuit but despite this are generally much more efficient than linear regulators, typically around 90\%. 
+			Switching regulators are more complex and usually use a reference waveform and a comparator to vary the duty cycle of an output stage transistor which is then fed into a filtering circuit to stabilize the voltage into a specified DC value. They can also step up voltages from lower ones to higher ones. Because of this added complexity and the generation of the reference waveform, they tend to consume a small amount of current, called the quiescent current, even when not supplying energy to the circuit but despite this are generally much more efficient than linear regulators, typically around 90\% although this value will change depending on the load of the circuit attached. 
 			
 		\subsection{Battery Chemistries}
 			There are a number of different battery chemistries being used in embedded system applications, the three most common being: Alkaline, Lithium-Ion and Lithium-Polymer. \\
 			
-			Alkaline cells rely on the interaction between zinc and mangnanese (IV) oxide. These cells are typically not rechargeable and can be quite heavy as they are typically produced inside a steel case. They also have a problem with high current draws; the capacity of the battery decreases with increasing load current. \\
+			Alkaline cells rely on the interaction between zinc and mangnanese (IV) oxide. These cells are typically not rechargeable and can be quite heavy as they are typically produced inside a steel case. They also have a problem with high current draws; the effective capacity of the battery decreases with increasing load current. \\
 			
 			Lithium-Ion is probably the most common battery type seen in robotics. They have a large capacity to weight ratio and are rechargeable. However they are most commonly produced in a hard plastic case which increases the weight significantly. \\
 			
@@ -431,7 +435,7 @@ In light of this scenario, there is a significant research potential in such a d
 				\label{fig:BAT}
 			\end{figure}		
 	
-			This damage is a significant factor for this project. When lithium, and a few other chemistries, cells are damaged, they can sometimes undergo a state called thermal runaway, where the entirety of their energy is converted to heat in a few seconds. This can be quite violent and appropriate protections need to be taken into account to stop this from happening to any batteries placed on an animal.
+			This damage is a significant factor for this project. When lithium cells, and a few other battery types, are damaged, they can sometimes undergo a state called thermal runaway, where the entirety of their energy is converted to heat in a few seconds. This can be quite violent and appropriate protections need to be taken into account to stop this from happening to any batteries placed on an animal as it would almost certainly prove fatal. Another safety issue which is relevant to all kinds of batteries, but especially coin cell and alkaline batteries with exposed terminals, is of ingestion. When batteries are ingested they can short across internal organs and burn their way through and/or have their cases eroded by stomach acid which releases the incredibly toxic interior. This cannot happen in this project and every measure reasonable should be taken to reduce the risk of it occurring.
 
 \chapter{Design Overview}
 	NOTE: Many circuit schematics to go in here, might be a bit bare figure wise at the moment. Also missing some explicit discussion on circuitry specifics but we'll see how we're going for space when more is complete. \\ \noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
@@ -447,43 +451,54 @@ In light of this scenario, there is a significant research potential in such a d
 			\caption{Hardware Diagram}
 			\label{fig:HWD}
 		\end{figure}		
-		\newpage
+
 		
 		\subsection{Microcontroller}
-		The microcontroller was considered to be one the key choices with regards to achieving the operating lifetime. In the field there are a number of competing device lines in super low power applications such as Microchip's nanoWatt, Atmels picoPower and Texas Instruments MSP430 series. \\
+		The microcontroller was considered to be one the key choices with regards to achieving the operating lifetime. In the field there are a number of competing device lines and technologies in the super low power applications such as Microchip's nanoWatt, Atmels picoPower and Texas Instruments MSP430 series. \\
 		
-		All these device lines could theoretically be used for the device when only considering power usage, they all have active mode currents in the range of $\mu$A/MHz. \\
+		All these device lines could theoretically be used for the device when only considering power usage, they all have active mode currents in the range of $\mu$A/MHz and have enough peripheral functionality and I/O ports to satisfy the requirements. \\
 		
-		Atmel's picoPower line is quite young and expensive, which is not very attractive in this range of products however it was the most familiar. Using one of the development boards quickly revealed that, while functional, the microcontrollers were quite susceptible to soft faults and would often reset without notice. This combined with the lack of extensive documentation and an overly bloated framework lead to the adoption of an alternative solution being sought. \\
+		Atmel's picoPower line is quite young and expensive, which is not very attractive in this range of products however it was the most familiar. Using one of the development boards quickly revealed that, while functional, the microcontrollers were quite susceptible to soft faults and would often reset without notice. This combined with the lack of extensive documentation, an overly bloated framework and a proprietary, closed source chip used to program the device lead to the adoption of an alternative solution being sought. \\
 		
-		The two competing microcontrollers left belonged to the MSP430 series and the PIC24F series. Eventually PIC24F was chosen over the MSP430 as it was found to be more user friendly and had one key feature; remappable peripherals. The PIC24F series can move the peripheral fucntions, like I2C, SPI, UART and others, onto any available I/O pin. This flexibility allowed for the most freedom when performing PCB placement as there would rarely be a situation where a pin was stuck in a tricky place. \\
+		The two competing microcontrollers left belonged to the MSP430 series and the PIC24F series. Eventually PIC24F was chosen over the MSP430 as it was found to be significantly better documented and had one extra key feature; remappable peripherals. The PIC24F series can move the peripheral fucntions, like I2C, SPI, UART and others, onto any available I/O pin. This flexibility allowed for the most freedom when performing PCB placement as there would rarely be a situation where a pin was stuck in a tricky place. This user friendliness was of course only relative and there were a number of errors in documentation as is common in the newer chipsets. \\
 		
-		The PIC24FJ128GA306 was the final microcontroller chosen \cite{PIC24} and boasted current draws as low as 150 $\mu$A/MHz in active mode and around 400 nA in sleep mode with a real time clock enabled. The device is also relatively small, just 10mm by 10mm by 1mm, making it ideal for these applications. There is no BGA version of this exact chip but there is another in the PIC24FJ128GA310 family but due to the increased pin count is the same size.
+		The PIC24FJ128GA306 was the final microcontroller chosen \cite{PIC24} and boasted current draws as low as 150 $\mu$A/MHz in active mode and around 400 nA in sleep mode with a real time clock enabled. The device is also relatively small, just 10mm by 10mm by 1mm, making it ideal for these applications. There is no BGA version of this exact chip but there is another in the PIC24FJ128GA310 family but due to the increased pin count is the same size. 
+		
+		%Programming the device?
 		
 		\newpage
 		\subsection{Sensors}
-		Sensors can have a noticeable impact on battery life. Some sensors, such as gyroscopes, can draw current in the range of mA. For most sensors, absolute accuracy is the ultimate design goal and so power consumption typically suffers. Luckily for most sensors, there exist some, relatively expensive, solutions that are highly configurable in order to customize the tradeoff between accuracy and power consumption. \\
+		Sensors can have a noticeable impact on battery life. Some sensors, such as gyroscopes, can draw current in the range of mA. For most sensors, absolute accuracy is the ultimate design goal and so power consumption typically suffers. Luckily for most sensors, there exist some, relatively expensive, solutions that are highly configurable in order to customize the balance between accuracy and power consumption. \\
 		
 			\subsubsection{Accelerometry}
 			There are a number of exciting new entries into the low power accelerometry chip market. Most notable is the Bosh BMI160 \cite{bosch15} which has ultra low operational currents of less than a mA with both the accelerometer and gyroscope enabled. \\
 			
 			Unfortunately the BMI160 could not be used as the data would not be compatible with the existing set of data from the InvenSense MPU9150 \cite{InvenMPU9150} on the BEE-UTE board. The MPU9150 is an integrated inertial measurement unit (IMU) with an onboard accelerometer, thermometer, gyroscope and magnetometer. The MPU9150 draws 900uA with the accelerometer enabled, which is more than enough for this application as the device will spend the vast majority of its time powered down. 
-			\subsubsection{Pressure \& Temperature}
-			The temperature sensor onboard the MPU9150 is not accuract enough for the levels of precision required and does not have an onboard pressure sensor strangely enough. In order to get the most accurate reading of either, pressure and temperature should be sampled together. \\
 			
-			The Measurement Specialties MS5637 \cite{MEASPRESSURE} was chosen for this application as it boasted a super low power consumption, was relatively cheap and has a small footprint. There were a number of others in its class but a lot of them had onboard processing, the MS5637 instead requires the microcontroller to read in the calibration words and use them to convert the unitless measurements into metric values. 
+			\subsubsection{Pressure \& Temperature}
+			The temperature sensor onboard the MPU9150 is not accurate enough for the levels of precision required and does not have an onboard pressure sensor. In order to get the most accurate reading of either, pressure and temperature should be sampled together. \\
+			
+			The Measurement Specialties MS5637 \cite{MEASPRESSURE} was chosen for this application as it boasted a super low power consumption, was relatively cheap and has a small footprint. There were a number of others in its class but a lot of them had onboard processing, the MS5637 instead requires the microcontroller to read in the calibration words and use them to convert the unitless measurements into metric values. This allowed the MS5637 to draw a near insignificant amount; only 0.6 $\mu$A.
+			
 			\subsubsection{Light Sensor}
 			Most digital light sensors required a comparatively large amount of power to operate and had relatively large footprints. In light of this a completely analog light sensor was chosen, the Avago APDS-9005-020 \cite{AVAGOLIGHT}. \\
 			
-			The purpose of the sensor was to primarily tell if the echidna was resting in the shade or out in direct sunlight so metric values weren't important and with the PIC24F's onboard 10 bit ADC, precision wasn't a problem for this sensor. 
+			The purpose of the sensor was to primarily tell if the echidna was resting in the shade or out in direct sunlight so metric values weren't important and with the PIC24F's onboard 10 bit ADC, precision wasn't a problem for this sensor. It was easily able to discern between light and dark. 
+			
+			%Talk about phototransistors, output currents etc?
+			
 			\subsubsection{GPS Localisation}
-			The GPS was probably the hardest sensor to decide upon. It had to be everything GPS sensors aren't; small, power efficient and fast operating. Eventually the u-blox MAX6 \cite{ubloxGPS} was chosen. \\
+			The GPS was probably the hardest sensor to decide upon. It had to be small, power efficient and acquire a satellite fix very quickly, features that are rare in such devices. Eventually the u-blox MAX6 \cite{ubloxGPS} was chosen. \\
 			
 			The MAX6 can draw currents as small as 12mA during a 1Hz update rate, as much as five times smaller than the norm for a GPS. This however comes with a lot of drawbacks, namely price. The device is \$60 USD and can, at the time of writing, only be bought in Australia directly from the manufacturer. \\
 			
-			These concessions had to be made for this project however, as the GPS alone would require more current than every other component combined otherwise.
+			These concessions had to be made for this project however, as the GPS alone would otherwise require far more current than every other component combined otherwise.
+			
+			%layout considerations etc?
+			
 			\subsubsection{Battery Meter}
 			With non volatile data storage, corruption of memory, especially in the presence of a under voltage event, becomes more likely. The battery meter will help the application track the battery voltage allowing it to shutdown safely when the battery is in danger of an under voltage event. \\
+			
 			
 			The battery meter chosen was the Maxim Integrated MAX17040 \cite{max17} mainly due to the low cost and size. %More?
 			
@@ -498,19 +513,18 @@ In light of this scenario, there is a significant research potential in such a d
 					\label{fig:MLD}
 				\end{wrapfigure}
 		
-		$\mu$SD cards can draw incredibly large currents in write mode \cite{Sandisk} and as such, can not be relied upon for primary storage; the cost of small writes is simply too great. Instead the approach taken was to store as much as possible on the microcontroller then write this out in bursts to the volatile SRAM. Once this was full, an entire 2Mbit write could occur to the $\mu$SD card, greatly reducing the power consumption. \\
+		$\mu$SD cards can draw large currents from about 50mA to 200mA in write mode \cite{Sandisk} and as such, can not be relied upon for primary storage; the cost of small writes is simply too great. Instead the approach taken was to store as much as possible on the microcontroller then write this out in bursts to the volatile SRAM. Once this was full, an entire 2Mbit write could occur to the $\mu$SD card, greatly reducing the power consumption. \\
 		
-		With the selection of this serial SRAM and generating around 160 bytes of sensor readings every second (at a 1 Hz sampling rate) the $\mu$SD card will only need to be written to every 26 minutes. Without the serial SRAM, this would have been reduced to only 2 minutes. \\
+		With the selection of this serial SRAM and generating around 160 bytes of sensor readings every second (at a 1 Hz sampling rate) the $\mu$SD card will only need to be written to every 26 minutes. Without the serial SRAM, this would have been reduced to only 2 minutes. This reduces the effective duty cycle of the $\mu$SD card to the point where it is almost negligibly small for all but the largest write events.
 		
 		\subsection{Power Supply}
-		The power supply is one area where any mistakes have a cumulative effect on system power consumption. Quiescent currents and inefficiencies can become very significant in the face of relatively minor design errors. \\
+		The power supply is one area of design where any mistakes have a cumulative effect on system power consumption. Quiescent currents and inefficiencies can become very significant in the face of relatively minor design errors. \\
 		
 		In order to maintain relatively safe with these issues, and to not fix what isn't broken, the same components as appeared on the BEE-UTE board were chosen. These devices are both Texas Instruments branded: the BQ24072 battery charging and power path management IC \cite{TIUSB} and the TPS63030DSK switching buck-boost regulator \cite{TIBUCK}. \\
 		
-		The BQ24072 allows for a user to charge the battery onboard or optionally power the device from the USB bus. This enables a potential fixed position application or an alternate, 5 volt source to power the device, although battery voltage tracking would not be available. In addition, the BQ24072 also has a number of thermal protection and short-circuit protections which will prove themselves essential in the rugged environment of the Australian outback. \\
+		The BQ24072 allows for a user to charge the battery onboard or optionally power the device from the USB bus. This enables a potential fixed position application or an alternate, 5 volt source to power the device, although battery voltage tracking would not be available. In addition, the BQ24072 also has a number of thermal protection and short-circuit protections which will prove themselves essential in the rugged environment of the Australian outback. \\%and my care lol
 		
 		The TPS63030 is a fairly standard buck-boost switching regulator with a relatively flat efficiency curve of around 80\% for most of the operating range of currents. There is also around a 50uA quiescent current, which is very small for the price range of the device. The TPS63030 retails for approximately \$6 AUD and most power supplies that can provide higher efficiencies across the incredibly large range this device will have will be too costly for this project. \\
-		
 		
 		%TALK ABOUT SELECTION OF PASSIVES
 		Programming the output voltage on the TPS63030 is remarkably simple; Texas Instruments provide all the relevant equations and best practices for layouts and component specifications. The feedback voltage is fixed to around 500mV inside the device, although in practice this varied slightly depending on the load attached, which resulted in some fine tuning on the finished product. See Appendix [!REF] for detailed calculations and information about selection of passives and their specifications.
@@ -518,7 +532,7 @@ In light of this scenario, there is a significant research potential in such a d
 		\subsection{Batteries}
 		Now that the components are selected, it is appropriate to draft a power budget to better inform the size of battery needed. It has already been decided to go with lithium polymer batteries, which are significantly lighter per unit charge than most other types which should allow maximum flexibility. \\
 		
-		Table \ref{tab:PWR} shows the required battery sizes for various power management strategies. The three strategies are no control (N.C.), basic control (B.C.) and advanced control (A.C.) and refer to the extent to which duty cycling certain components is performed. Note that an analysis like this will not factor in things like inefficiencies, quiescent currents,  self discharge etc so these results more serve to provide an upper bound on performance. Actual performance could be as low as half of these predicted values.\\
+		Table \ref{tab:PWR} shows the required battery sizes for various power management strategies. The three strategies are no control (N.C.), basic control (B.C.) and advanced control (A.C.) and refer to the extent to which duty cycling certain components is performed. Note that an analysis like this will not factor in things like inefficiencies, quiescent currents,  self discharge etc so these results more serve to provide an upper bound on performance. Actual performance could be as low as half of these predicted values due to a the effects mentioned above and an uncountable amount of other factors.\\ %Bit weasel word
 		
 		\begin{table}[H]
 			\centering
@@ -541,12 +555,13 @@ In light of this scenario, there is a significant research potential in such a d
 			\label{tab:PWR}
 		\end{table}		
 		
-		It is immediately clear that some heavy management of duty cycle is necessary for this project to work correctly. A battery of about 8A-h would be incredibly expensive and far too heavy for the application. 1.2A-h lithium polymer batteries are relatively common, come in a variety of sizes and weigh about 20 grams. Alternatively, to improve the battery life, a 2A-h battery can be connected which weighs 40 grams.
+		It is immediately clear that some heavy management of duty cycle is necessary for this project to work correctly. A battery of about 8A-h would be far too heavy for the application; around 200 grams alone. 1.2A-h lithium polymer batteries are significantly more common, come in a variety of sizes and only weigh about 20 grams. Alternatively, to improve the battery life, a 2A-h battery can be connected which weighs 40 grams.
 		
 		\subsection{Connectors}
-		A frequently overlooked component in system design is user end connectors being of poor quality or being of a simple 0.1 inch pitch unkeyed connector. After seeing many projects go up in flames it was apparent that small keyed connectors were needed. \\
+		A frequently overlooked component in system design is user end connectors being of poor quality or being of a simple 0.1 inch pitch unkeyed connector. It is an unnecessary risk for the board to have these connectors as it also increases the risk of the battery detaching from the board during operation.\\
 		
 		A standard microUSB type B plug was used for the battery charging, due to its small size and being a common cable throughout the world. A JST connector was used for the battery input, to prevent any users from accidentally connecting it backwards and also allowing the system to operate with any single cell lithium based battery which will expand the possible applications significantly as the user won't be required to resolder anything to change the battery. 
+		
 	\newpage
 	\section{Firmware}
 		The approach to firmware was primarily iterative; an initial plan was laid out early in the project's life but this was repeatedly updated and refined in the face of new information or implementation subtleties. The choice to go without an embedded operating system was not taken lightly; an embedded operating system can save the developer having to delve into the specifics of a microcontrollers architecture. Ultimately it was decided that this benefit was not worth the inevitable lack of flexibility and operating overhead. \\
@@ -597,7 +612,17 @@ In light of this scenario, there is a significant research potential in such a d
 			%Picture of bare PCB with separation pointed out
 			%Passives (0402)
 		\subsection{Bill of Materials}
-		TODO: Must format nicely
+		The bill of materials for the project is presented below in Figure \ref{fig:BOM} and is a complete mapping of parts to their specifiers on the board. All the prices are quoted as single purchase quantities and it is assumed (incredibly roughly) that the USD is equal to the AUD. \\
+		
+		The assumption that the USD was equal to the AUD was more appropriate at the start of the project than it is now. Almost all of these prices have gone up around 40\% due to the fall of the AUD. Components without a supplier must be purchased on request from the manufacturer and, for practicality reasons, should probably be replaced with an equivalent, easier to find, part in the next revision.
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=15cm]{Figures/BOM.PNG}
+			\caption{Bill of Materials}
+			\label{fig:BOM}
+		\end{figure}	
+		
+
 		\subsection{Construction}
 		There are a number of practical difficulties with construction that need to be fixed in subsequent iterations but in the current state, this needs to be done to be able to build the device. \\
 		
@@ -607,6 +632,7 @@ In light of this scenario, there is a significant research potential in such a d
 		
 		%Maybe talk about iterations here?
 	\section{Integration}
+	\subsubsection{Case}
 	The purpose of this design is to be used in a wide variety of entirely uncontrolled, and very hostile, environments. As such for the device to survive for longer than a few moments it must be protected by a case. This case would need to be waterproof and shock resistant as well as quite small. \\
 	
 	Initially several options were drafted to construct a case out of polyethylene from a 3d printed mold fitted with an off the shelf o-ring to prevent moisture seeping in. This case would have weighed less than 5 grams and would have vastly improved the size of battery connected to the device. \\
@@ -621,7 +647,21 @@ In light of this scenario, there is a significant research potential in such a d
 	\end{figure}			
 
 	%Talk about cases here
-	NOTE: Maybe talk about which cases could and could not be used? \& Talk about actually putting everything together and the challenges within (Definitely do this, need to detail PCB iterations and breadboard pictures)\\
+	Of the three cases pictured in Figure \ref{fig:CASE} only the red capped one could be used for the final PCB. The yellow cap was about 5mm too short and an appropriate battery could not be sourced in time for the clear capped container. The red capped container leaves a lot of air room and is far from ideal; the sensor and battery would have to be taped down to minimise internal movement.\\
+	
+	\subsubsection{PCB Fabrication \& Development}
+	The PCB's for this project were designed using the Altium Designer suite of tools and went through several iterations to arrive at the final revision. \\
+	
+	Initially large breakout PCB's were created to test basic functionality and generally make it easier to debug a circuit. The only significant change from this stage of development was the adoption of a different SRAM chip as the existing one was found to be too power hungry. \\
+	
+	%GET PICTURES OF THEM THEN!?!?!
+	%Maybe some more stuff
+	
+	The final PCB's were constructed by hand, sans GPS due to sourcing issues, and were mostly functional except for two small errors discussed in Section \ref{sec:PCBERROR}. The final board features a user LED, for rough debugging purposes, a programming header for programming and debugging, a UART output and all the other hardware features required of the project. A picture of the second to last revision is shown in Figure \ref{fig:PCB}.
+	
+%	COMPARE LV SLEEP TO WHILE 1
+%	while 1 152.8mV		15mA
+%	LV		 73.1mV		7.3mA
 	
 		\begin{figure}[H]
 			\centering
@@ -630,8 +670,8 @@ In light of this scenario, there is a significant research potential in such a d
 			\label{fig:FIN}
 		\end{figure}	
 		
-	\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
-	\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+	\subsubsection{Visualisation of Data}
+		%TODO
 		
 \chapter{Discussion}
 
@@ -645,6 +685,9 @@ In light of this scenario, there is a significant research potential in such a d
 			\item An operational lifetime of a week or better
 		\end{enumerate} 
 		Due to a number of development issues involving time constraints and component sourcing not all of the functionality could be completed but the design does satisfy these three targets or provide significant evidence that they would be satisfied.\\
+		
+		%%Talk about final features of design
+		%Visualization etc
 		\subsection{Size \& Weight}
 		The final PCB produced, which was very similar to \ref{fig:FIN} but with a rotated battery input and some miscellaneous fixes to usability, weighs 6.55 grams.
 		
@@ -659,6 +702,13 @@ In light of this scenario, there is a significant research potential in such a d
 		TODO: IP67 Tests
 		\subsection{Operational Lifetime}
 		
+		The fundamental purpose of this project is to extend the operational lifetime from the 40 hours provided by the BEE-UTE board \cite{Freakley13} and turn that into something longer and much more palatable. \\
+		
+		Achieving very low current draws in this system has been quite difficult; the presence of the volatile memory chips has made minimising the sleep mode current very difficult as there is always some minor current leakage in maintaining a transistor state. The document on reducing power consumption from Microchip \cite{PICPWR} details some of the commonly used tactics to reduce power consumption in embedded systems. \\
+		
+		Several of these tactics were employed ...
+		
+		How was it measured??./..
 			\begin{figure}[H]
 				\centering
 				\includegraphics[width=14cm]{Figures/input.png}
@@ -666,20 +716,28 @@ In light of this scenario, there is a significant research potential in such a d
 				\label{fig:input}
 			\end{figure}	
 			
+		Discuss impacts
+		
+		Discuss possible improvements
+			
 		\subsection{Sensor Accuracy}
 		TODO: Accuracy Tests
-		\subsection{PCB}
+		
+		\subsection{PCB} \label{sec:PCBERROR}
 		The final PCB submitted was almost feature complete except for two small errors. Firstly the $\mu$SD card header footprint was reversed, and had to be bodged manually and the control pin for providing power to the $\mu$SD card was connected to an input only pin of the PIC24F. Fortunately this pin was right next to an unused output so a small solder bridge was all that was needed to correct it. \\
 		
-		Since submission these two issues have been fixed and there has been a separation of power grounds and the rest of the circuit, to minimise switching noise. \\
+		Since submission these two issues have been fixed and are what appear in the final version of the supplied documents. \\
 		
 	\section{Incomplete Work}
 	Unfortunately, due to a combination of several issues, some features and sections of the project could either not be finished, or not be tested. Where otherwise mentioned, every entry into this section implicitly  should appear in Section \ref{sec:FUTURE}, "Future Work".
 	
 	TODO: Flesh these out naturally
 	\subsubsection{GPS Module}
+		-Couldn't get it in time\\
 	\subsubsection{Proof of $\mu$SD Card}
+		-Detail explosions and what happened afterwards\\
 	\subsubsection{Full Lifetime Measurement}
+		-Time limitations\\
 	
 	\section{Specification Comparison}
 	\section{Future Work} \label{sec:FUTURE}
@@ -690,7 +748,22 @@ In light of this scenario, there is a significant research potential in such a d
 
 \chapter{User Manual}
 
-\ldots
+\begin{enumerate}
+	\item Device Setup\\
+		-For users\\
+		-Run through power on procedure (battery connection + switch)\\
+		-Flashing LED's and what they mean to you \\
+	\item Battery Charging\\
+		-Connect battery + usb \\
+		-If lights all good \\
+	\item Data Storage Format \\
+		-Provide copy of struct \\
+		-example python code to retrieve values\\
+	\item Programming \\
+		-How to connect PICkit 3
+		
+\end{enumerate}
+
 
 \appendix
 
@@ -880,6 +953,15 @@ files can be downloaded.
 	OpenBSD (2015)
 	\emph{style — Kernel source file style guide (KNF) - Manual Page} [Online], http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man9/style.9?query=style\&sec=9
 	
+	\bibitem{PICPWR}
+	Microchip (2009)
+	\emph{PIC Microcontroller Low Power
+		Tips ‘n Tricks} [Online], http://ww1.microchip.com/downloads/en/DeviceDoc/01146B\_chapter\%202.pdf
+	
+	\bibitem{Brattstrom73}
+	Brattstrom, Bayard H. (1973)
+	\emph{Social and Maintenance Behavior of the Echidna, Tachyglossus aculeatus}
+	Journal of Mammalogy Vol. 54 No. 1 (Feb., 1973), pp. 50-70
 \end{thebibliography}
 
 \end{document}
