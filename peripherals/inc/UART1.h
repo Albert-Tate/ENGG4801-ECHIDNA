@@ -5,8 +5,6 @@ April 16, 2008
 Author: JL
 */
 
-//prototypes
-
 //Initiation
 extern void UART1Init(int BAUDRATEREG1);
 

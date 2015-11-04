@@ -1,5 +1,5 @@
 /**********************************************************
- *  File: 23LC512.c
+ *  File: 23LCV1024.c
  *  Description: Implementation for memory module device control
  *  Author: Albert Tate
  *  Date: 04/05/15
@@ -10,7 +10,7 @@
 #include "SPI.h"
 #include "../inc/23LCV1024.h"
 
-//TODO: Replace these with GPIO
+
 //Defines
 #define EXT_MEM1_SET LATGbits.LATG2 = 1;
 #define EXT_MEM1_RESET LATGbits.LATG2 = 0;
@@ -45,7 +45,7 @@ EXT_MEM_read_byte(uint8_t module, uint32_t addr)
     spiWrite(0, (uint8_t)((addr>>16)&0xFF));
     spiWrite(0, (uint8_t)((addr>>8)&0xFF));
     spiWrite(0, (uint8_t)(addr&0xFF));
-    rx = spiWrite(0, 0xFF); //TODO: Check NOP command
+    rx = spiWrite(0, 0xFF);
     MEM_CS(module, 1);
     return rx;
 }
@@ -65,6 +65,8 @@ EXT_MEM_read_buffer(uint8_t module, uint32_t addr, uint32_t len, uint8_t *buff)
     MEM_CS(module, 1);
 }
 
+
+
 void
 EXT_MEM_write_byte(uint8_t module, uint32_t addr, uint8_t byte)
 {
@@ -73,7 +75,7 @@ EXT_MEM_write_byte(uint8_t module, uint32_t addr, uint8_t byte)
     spiWrite(0, (uint8_t)((addr>>16)&0xFF));
     spiWrite(0, (uint8_t)((addr>>8)&0xFF));
     spiWrite(0, (uint8_t)(addr&0xFF));
-    spiWrite(0, byte); //TODO: Check NOP command
+    spiWrite(0, byte);
     MEM_CS(module, 1);
 }
 

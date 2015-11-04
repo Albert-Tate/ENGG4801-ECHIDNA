@@ -5,9 +5,9 @@ Created		Jul 1, 2010
 Modified	Jul 1, 2010
 source for spi device drivers
 */
+
 #include "../inc/SPI.h"
 #include "spi.h"
-//#include "nlib_spi.h"
 
 //write using selectable ports
 unsigned char spiWrite( unsigned port, unsigned char i)

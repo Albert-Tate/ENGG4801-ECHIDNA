@@ -10,7 +10,6 @@
 
     #define APDS_ON command_set_gpio
     #define APDS_OFF command_reset_gpio
-    
     uint16_t APDS_read(void);
 
 #endif

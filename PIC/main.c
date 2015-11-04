@@ -26,7 +26,7 @@
 #include "../peripherals/inc/UART1.h"
 #include "P24ADC.h"
 
-#include "../peripherals/inc/i2c-Master.h" //I hate you MPLAB
+#include "../peripherals/inc/i2c-Master.h" //MPLAB include path broken on system
 #include "app_errno.h"
 
 #include "../peripherals/inc/MPU9150.h"
@@ -37,24 +37,16 @@
 #include "../peripherals/ff11a/src/diskio.h"
 #include "../peripherals/ff11a/src/ff.h"
 
-/******************************************************************************/
-/* Global Variable Declaration                                                */
-/******************************************************************************/
-
-/* i.e. uint16_t <variable_name>; */
 
 /******************************************************************************/
 /* Main Program                                                               */
 /******************************************************************************/
-//I have no clue where to put this
-// .equiv SLEEP_MODE, 0x0000
-//.equiv IDLE_MODE, 0x0001
 
 #define SPI_MASTER_POLPHASE0  0b00000000001 // select 16-bit master mode, CKE=1, CKP=0
-#define SPI_ENABLE  0x8000 // enable SPI port, clear status
+#define SPI_ENABLE  0x8000                // enable SPI port, clear status
 #define SPI1CLK RPOR11bits.RP22R
 #define SPI1MOSI RPOR11bits.RP23R
-#define UART_TX RPOR1bits.RP3R         //D10 = RP3
+#define UART_TX RPOR1bits.RP3R            //D10 = RP3
 #define UART_RX RPINR18bits.U1RXR         //D11 = RP12
 
 #define ENTER_SLEEP asm volatile("PWRSAV #0x0000");
@@ -79,8 +71,9 @@
 #define TIMER_START     T1CON = 0b1000000000000000;
 #define TIMER_END       T1CON = 0b0000000000000000;
 
-//#define SD_CARD 0x00 //enables SD card
+#define STICKY_MAX 10
 
+//#define SD_CARD 0x00 //enables SD card
 
 struct TIME {
     uint8_t sec;
@@ -92,6 +85,7 @@ struct TIME {
 } local_time;
 
 #define MAX_MEASURE 120 //How many fit on device before we write to SRAM
+
 struct MEASUREMENT {
     //MS5637
     int32_t TEMPERATURE;
@@ -103,7 +97,7 @@ struct MEASUREMENT {
     //Light sensor
     uint16_t LALOG;
     //Time
-    uint8_t day; //0-255 (I wish)
+    uint8_t day; //0-6 valid
     uint8_t hour; //lots of bad values could happen here
     uint8_t minute;
     uint8_t second;
@@ -113,15 +107,16 @@ struct MEASUREMENT {
     //now 172 bit
 } measure[MAX_MEASURE];
 
-
-
 void UART_PUTVAR(const char* name, int namelen, int value);
+
 void RTC_INIT(void);
 void RTC_SNAPSHOT(struct TIME*);
 void RTC_ALARMSET(uint8_t);
 void RTC_ALARMOFF(void);
+
 uint16_t MAX17040_SOC(void);
 uint16_t MAX17040_VDD(void);
+
 void TimerInit(void);
 void init_ports(void);
 int UART_SEND_PACKET(void);
@@ -132,10 +127,15 @@ void __attribute__((__interrupt__)) _T1Interrupt(void);
 int aerrno;
 int meas_index = 0;
 int mem_pointer = 0;
-int BATT_SOC = 1000;
-uint16_t MSCAL[6];
+int BATT_SOC = 1000; //State of charge
+int activity_sticky = 0;
+uint16_t MSCAL[6];   //MS56337 calibration words
 uint32_t PRES = 0;
 uint32_t TEMP = 0;
+
+int32_t ACTIVITY = 0;
+uint32_t THRESHOLD = 20000;
+uint8_t ALARM = 1; //1 Hz
 
 FATFS FatFs; //Object for FAT storage
 FIL fil; //File object
@@ -150,13 +150,10 @@ int16_t main(void) {
 
     aerrno = ERR_OK; /*global error var*/
 
-    
     /* Configure the oscillator for the device */
     ConfigureOscillator();
 
-    //Set all ports to output to minimise current leakage
-    //Any updated ports will be changed after this so no biggy
-    //Drive them low?
+    //Set all ports to output to minimise leakage current
     init_ports();
     TRISDbits.TRISD11 = 1;
     
@@ -168,12 +165,13 @@ int16_t main(void) {
     _SDI1R = 24;
             //UART
     UART_TX = 3; //D10
-    //RPINR18bits.U1RXR = 12;
+    __builtin_write_OSCCONL(OSCCON | 0x40);
     
-    __builtin_write_OSCCONL(OSCCON | 0x40); 
-
+#ifdef SD_CARD
+    TimerInit();
+#endif
+    
     spi1Init(0);
-    
     RTC_INIT();
     i2c_init(157); //100kHz. See data sheet 157
     ADC_init();
@@ -188,13 +186,11 @@ int16_t main(void) {
     LATGbits.LATG2 = 1; //CS high
     LATGbits.LATG3 = 1; //CS high
 
-    TRISDbits.TRISD8 = 0; //SD_CTL
+    TRISDbits.TRISD8 = 0; //SD_CTL (Power CTL)
     TRISDbits.TRISD0 =  0; //SD_CS
 
     LATDbits.LATD8 = 1; //drive high SD OFF
     LATDbits.LATD0 = 1;
-
-    TimerInit();
 
     MS5637_ON;
     delay_us_3(1000);
@@ -223,20 +219,13 @@ int16_t main(void) {
     if (fr == FR_NO_FILE) {
         fr = f_open(&fil, "a.bin", FA_WRITE | FA_CREATE_NEW);
     }
-    fr = f_write(&fil, (void*)MSCAL, (UINT)sizeof(MSCAL), (UINT*)&temp);
     f_close(&fil);
     TIMER_END;
     SD_OFF;
 #else
     UART1Init(6); //Gives 142000 Baud rate. Clock at approx 20Mhz (10mHz FCY)
 #endif
- /*   while(1) {
-        UART1PutChar('F');
-        if(UART1GetChar()) {
-            UART1PutChar('G');
-            UART1PutChar('\n');
-        }
-    }*/
+    
     while(1) {
         MS5637_OFF;
         MPU9150_OFF;
@@ -252,13 +241,11 @@ int16_t main(void) {
         }
         
         MS5637_START_CONVERSION(MS5637_CMD_CONV_D1_256);
-        delay_us_3(10000); //fine tune these
-        delay_us_3(10000);
+        delay_us_3(20000);
         PRES = MS5637_READ_ADC();
-
+        
         MS5637_START_CONVERSION(MS5637_CMD_CONV_D2_256);
-        delay_us_3(10000);
-        delay_us_3(10000);
+        delay_us_3(20000);
         TEMP = MS5637_READ_ADC();
 
         MS5637_CONV_METRIC(PRES , TEMP, MSCAL, 
@@ -266,19 +253,33 @@ int16_t main(void) {
                 &measure[meas_index].TEMPERATURE);
         
         MPU9150_init();
-        //Now give MPU time to stabilise
-
+        //Now give MPU time to stabilise (Very slow)
         delay_us_3(65535);
         delay_us_3(65535);
 
         MPU9150_read_ACC(&(measure[meas_index].X_ACC),
                          &(measure[meas_index].Y_ACC),
                          &(measure[meas_index].Z_ACC));
-        //dont bother with mputemp, less accurate and I don't want to kalman
-
         MPU9150_OFF;
-        MS5637_OFF; //This needs to be on for MPU9150 to work, silicon bug
+        MS5637_OFF;
 
+        /*Update Activity*/
+        ACTIVITY = measure[meas_index].X_ACC + measure[meas_index].Y_ACC +
+                measure[meas_index].Z_ACC;
+
+        activity_sticky--;
+        if(activity_sticky < 0) {
+            if(ACTIVITY < THRESHOLD - 2000) {
+                ALARM = 1;
+                activity_sticky = 0;
+            }
+            if(ACTIVITY > THRESHOLD + 2000) {
+                ALARM = 0;
+                activity_sticky = STICKY_MAX; //stick for max period
+            }
+        }
+
+        //Light Sensor
         LATDbits.LATD7 = 1;
         delay_us_3(5000); //4ms
         measure[meas_index].LALOG = ADCSample();
@@ -287,6 +288,7 @@ int16_t main(void) {
         BATT_SOC = MAX17040_SOC();
         if(aerrno) {
             BATT_SOC = -1; //Unknown battery state
+            aerrno = ERR_OK;
         }
 
         //load date, time etc
@@ -306,19 +308,20 @@ int16_t main(void) {
         if(meas_index == MAX_MEASURE) {
             uint32_t i;
             RTC_ALARMOFF(); //No interruptions while this happens
-            Nop();
-            Nop();
-            //Think harder about what happens near the limits of size
             if(meas_index + mem_pointer < EXT_MEM_SIZE) {
                 //write to device 1
                 for(i = 0; i < meas_index; i++) {
-                    EXT_MEM_write_buffer(0, mem_pointer, sizeof(struct MEASUREMENT),
+                    EXT_MEM_write_buffer(0, mem_pointer,
+                            sizeof(struct MEASUREMENT),
                             (uint8_t*)&(measure[i]));
                     mem_pointer += sizeof(struct MEASUREMENT);
                 }
-            } else if(meas_index*sizeof(struct MEASUREMENT) + mem_pointer < 2*EXT_MEM_SIZE) {
+            } else if(meas_index*sizeof(struct MEASUREMENT) +
+                    mem_pointer < 2*EXT_MEM_SIZE) {
                 for(i = 0; i < meas_index; i++) {
-                    EXT_MEM_write_buffer(1, mem_pointer - EXT_MEM_SIZE, sizeof(struct MEASUREMENT),
+                    EXT_MEM_write_buffer(1, 
+                            mem_pointer - EXT_MEM_SIZE,
+                            sizeof(struct MEASUREMENT),
                             (uint8_t*)&(measure[i]));
                     mem_pointer += sizeof(struct MEASUREMENT);
                 }
@@ -326,10 +329,10 @@ int16_t main(void) {
                 uint64_t j;
                 //SD CARD
                 /*EXT_MEM_SIZE/sizeof(struct MEASUREMENT) = Number of measure
-                  structs that fit inside this bad boy
-                 measstructno/MAX_MEASURE = how many times we have to fill
-                 measure struct array*/
-
+                 *structs that fit
+                 *measstructno/MAX_MEASURE = how many times we have to fill
+                 *measure struct array
+                 */
                 //Read structs in from mem1, cpy to SD CARD
                 for(j = 0;
                      j < (EXT_MEM_SIZE/sizeof(struct MEASUREMENT)/MAX_MEASURE);
@@ -357,16 +360,19 @@ int16_t main(void) {
 #endif
                 }
             }
+#ifndef SD_CARD
+            //Device shuts down during sleep
             UART1Init(6);
             delay(100);
             UART_SEND_PACKET();
             UART1PutChar('\n');
             delay(100);
+#endif
             meas_index = 0;
-            RTC_ALARMSET(1);
         }
-
+        
         //ENTER_SLEEP;
+        RTC_ALARMSET(ALARM);
         ENTER_LV_SLEEP;
     }
 }
@@ -374,21 +380,16 @@ int16_t main(void) {
 int UART_SEND_PACKET(void) {
     int  i, k;
     int16_t f;
-    //This dumps all memory
-
+    //This dumps all memory on the device
+    
     for(i = 0; i < MAX_MEASURE; i++) {
         for(k = 0; k < sizeof(struct MEASUREMENT)/2; k++) {
-            Nop();
-            Nop();
             f = *( ((int*)&measure[i] + k) );
             UART1PutChar( (f)&0xFF);
             UART1PutChar( (f >> 8)&0xFF );
         }
         UART1PutChar('\n');
     }
-    //UART1PutChar('T');
-    //mem_pointer
-    //meas_index
     return (0);
 }
 
@@ -451,7 +452,7 @@ UART_PUTVAR(const char* name, int namelen, int value)
         UART1PutChar(buf[i]);
     }
     UART1PutChar('\n');
-    UART1PutChar('\r'); //Goddamit windows
+    UART1PutChar('\r'); //Carriage return for windows machines
 }
 
 void
@@ -468,7 +469,7 @@ RTC_SNAPSHOT(struct TIME* time)
     time->day = (((RTC_REG&0xFF) >> 4)*10) + (((RTC_REG)&0x0F) % 10);
 
     RTC_REG = RTCVAL;
-    // weekday TIME->day = (((RTC_REG >> 8) >> 4)*10) + (((RTC_REG >> 8)&0x0F) % 10);
+    //weekday TIME->day = (((RTC_REG >> 8) >> 4)*10) + (((RTC_REG >> 8)&0x0F) % 10);
     time->hr = (((RTC_REG&0xFF) >> 4)*10) + (((RTC_REG)&0x0F) % 10);
 
     RTC_REG = RTCVAL;
@@ -481,7 +482,7 @@ RTC_ALARMSET(uint8_t interval)
 {
     _ALRMEN = 0;
 
-    ALRMVAL = 0; //Every  half second (AMASK3:0)
+    ALRMVAL = 0;
     _AMASK = interval;
 
     _ARPT = 0; //Once
@@ -506,7 +507,7 @@ RTC_ALARMOFF(void)
 void
 RTC_INIT(void)
 {
-    asm volatile("push w7"); //I think having to write ASM is fine
+    asm volatile("push w7"); //Unlock procedure
     asm volatile("push w8");
     asm volatile("disi #5");
     asm volatile("mov #0x55, w7");
@@ -517,6 +518,7 @@ RTC_INIT(void)
     asm volatile("pop w8");
     asm volatile("pop w7");
 
+    //No battery so arbitrary date must be set on boot
     _RTCPTR = 3;
     RTCVAL = 0x2015;
     RTCVAL = 0x1106; //6 nov

@@ -163,5 +163,9 @@ void __attribute__((interrupt,auto_psv)) _RTCCInterrupt(void)
 {
     //Clear flag
     IFS3bits.RTCIF = 0;
+
+    /*LED_ON;
+    delay_us_3(10000);
+    LED_OFF;*/
     //This wakes us up from sleep, attached to RTC alarm
 }

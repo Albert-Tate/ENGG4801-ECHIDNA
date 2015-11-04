@@ -3,7 +3,7 @@
 #include <p24Fxxxx.h>
 #include <stdio.h>
 
-#include "../../PIC/system.h" //I know about include paths, MPLABX Doesnt
+#include "../../PIC/system.h"
 #include "../inc/i2c-Master.h"
 #include "../../PIC/app_errno.h"
 
@@ -29,7 +29,11 @@ void
 i2c_start(void)
 {
     int x = 0;
-    //Begin hax -> Maybe not necessary?
+    /*
+     * Some versions of the PIC24F chip have a silicon bug preventing a
+     * proper start condition being issues on I2C bus. Here is a bit bashed
+     * workaround if you get one of those chips
+     */
     /*I2C1CONbits.I2CEN = 0;	//disable IIC
     delay_us_3(10); 
     TRISFbits.TRISF4 = 0; 
@@ -37,12 +41,11 @@ i2c_start(void)
     delay_us_3(10); 
     LATFbits.LATF4 = 1; 
     delay_us_3(10);*/
-    //hax compleet
 
     I2C2CONbits.ACKDT = 0; //Reset ack
     delay_us_3(10);
     I2C2CONbits.SEN = 1; //Start con
-    Nop(); //Yay good hardware design
+    Nop(); //Do not remove, required for start condition
 
     while(I2C2CONbits.SEN)
     {
@@ -89,7 +92,7 @@ reset_i2c_bus(void)
             break;
         }
     }
-    //Tell status we don't care
+    //reset status
     I2C2CONbits.RCEN = 0;
     IFS3bits.MI2C2IF = 0;
     I2C2STATbits.IWCOL = 0;
@@ -117,7 +120,6 @@ i2c_send_byte(int data)
     
     if(I2C2STATbits.ACKSTAT == 1) {
         aerrno = I2CACK; //Ack failed to receive
-        //reset_i2c_bus(); //causes us to  then timeout on receive?
         return(1);
     }
     
@@ -183,7 +185,6 @@ i2c_read_reg(char addr, char subaddr)
 
    i2c_start();
    i2c_send_byte(addr);
-   //i2c_restart();
    i2c_send_byte(subaddr);
    delay_us_3(3);
    
@@ -195,7 +196,7 @@ i2c_read_reg(char addr, char subaddr)
    return temp;
 }
 
-//returns 1 on fail
+//returns 1 on failure
 char
 i2c_poll(char addr)
 {

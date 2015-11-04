@@ -7,23 +7,16 @@
 
 #include "stdint.h"
 #include "I2C.h"
-//#include "../inc/i2c-Master.h" //Only works when implicitly called.
-//Literally no one on earth can describe this
-#include "../inc/MPU9150.h" //I blame MPLABX Entirely
+//#include "../inc/i2c-Master.h" 
+#include "../inc/MPU9150.h"
     
-//Start -> TX 8 bits(ADDR) -> ACK -> More Bytes -> Ack etc -> STOP
-//Start -> TX 8 bits -> ACK -> STOP
 //Device is in sleep mode on boot
     
 void
 MPU9150_init(void)
 {
-    //DLPF => 1k (CONFIG => 0x02)
-    //i2c_send_byte(MPU9150_ADDRESS);
-    //i2c_send_byte(MPU9150_WRITE | MPU9150_CONFIG);
-    //i2c_send_byte(0x02);
 
-    //MUST BE FIRST COMMAND ISSUED TO MPU. Why? black magic
+    //MUST BE FIRST COMMAND ISSUED TO MPU.
     //PWR_MGMT_1 => CLKSEL = 0 (int 8MHz), SLEEP = 0, TEMP_DIS = 0 (enable temp sensor)
     MPU9150_write_byte(MPU9150_PWR_MGMT_1, 0x00);
 
@@ -33,13 +26,12 @@ MPU9150_init(void)
     //disable i2c master
     MPU9150_write_byte(MPU9150_USER_CTRL, 0x00);
 
-    //Enable black magic
     MPU9150_write_byte(MPU9150_CONFIG, 0x02);
         
     //SMPRT_DIV => 9 (sample rate then 1k/(1+9) = 100 Hz
     MPU9150_write_byte(MPU9150_SMPLRT_DIV, 0x09);
 
-    //ACCEL_CONFIG => 0x00 for +-2g (ADD FUNCTIONS TO CHANGE THIS!!!!!)
+    //ACCEL_CONFIG => 0x00 for +-2g 
     MPU9150_write_byte(0x00, 0x00);
     
     //FIFO_EN => 0x00 (don't use FIFO)
@@ -57,8 +49,6 @@ MPU9150_read_byte(uint8_t addr)
     i2c_start();
     i2c_send_byte(MPU9150_ADDRESS | MPU9150_WRITE);
     i2c_send_byte(addr);
-    //reset_i2c_bus();
-    //Datasheet says no stop
 
     i2c_start();
     i2c_send_byte(MPU9150_ADDRESS | MPU9150_READ);
@@ -83,11 +73,13 @@ MPU9150_write_byte(uint8_t addr, uint8_t byte)
 void
 MPU9150_read_buffer(uint8_t addr, uint8_t* buff, uint8_t len)
 {
+        /*NOT IMPLEMENTED*/
 	return;
 }
 void
 MPU9150_write_buffer(uint8_t addr, uint8_t* buff, uint8_t len)
 {
+        /*NOT IMPLEMENTED*/
 	return;
 }
     
@@ -106,13 +98,13 @@ MPU9150_read_ACC(int16_t* X, int16_t* Y, int16_t* Z)
 void
 MPU9150_read_GYRO(int16_t* X, int16_t* Y, int16_t* Z)
 {
+        /*NOT IMPLEMENTED*/
 	return;
 }
 
 int16_t
 MPU9150_read_TEMP(void)
 { //Temp/340 + 35 to get actual value
-
     return MPU9150_read_byte(MPU9150_TEMP_OUT_L) |
                 (((int16_t)MPU9150_read_byte(MPU9150_TEMP_OUT_H)) << 8);
 }
@@ -126,12 +118,14 @@ MPU9150_convert_TEMP(int16_t TEMP)
 void
 MPU9150_sleep(void)
 {
+        /*NOT IMPLEMENTED - turn off device instead*/
 	return;
 }
 
 void
 MPU9150_wake(void)
 {
+        /*NOT IMPLEMENTED*/
 	return;
 }
  

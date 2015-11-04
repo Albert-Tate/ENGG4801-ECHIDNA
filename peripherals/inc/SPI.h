@@ -6,9 +6,6 @@ Modified	Jul 1, 2010
 headers for spi device drivers
 */
 
-//define i2c ports so that it can be
-//called using constants instead of numbers
-//declare only if ports are available
 enum SPIPorts{
 	SPIPORT1 = 1
 	#if defined(spi_v1_1) || defined (spi_v1_3)

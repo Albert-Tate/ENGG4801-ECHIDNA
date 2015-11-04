@@ -12,8 +12,7 @@
     #define MPU9150_TEMP_CONVERT(X) ((float)X/340.0 + 35)
 
     //I2C address depends on physical pin wiring (7 bits)
-//#define AD0 1
-    //AD0 is pulled to ground atm
+    //AD0 is pulled to ground
     #define MPU9150_ADDRESS 0b11010000
     
     #define MPU9150_ON LATDbits.LATD6 = 1
@@ -25,17 +24,8 @@
     #define MPU9150_WRITE 0x00
     #define MPU9150_READ 0x01
     
-    //Start -> TX 8 bits(ADDR) -> ACK -> More Bytes -> Ack etc -> STOP
-    //Start -> TX 8 bits -> ACK -> STOP
-    //Device is in sleep mode on boot
-    
+
     void MPU9150_init(void);
-    //DLPF => 1k (CONFIG => 0x02)
-    //SMPRT_DIV => 9 (sample rate then 1k/(1+9) = 100 Hz
-    //ACCEL_CONFIG => 0x00 for +-2g (ADD FUNCTIONS TO CHANGE THIS!!!!!)
-    //FIFO_EN => 0x00 (don't use FIFO)
-    //PWR_MGMT_1 => CLKSEL = 0 (int 8MHz), SLEEP = 0, TEMP_DIS = 0 (enable temp sensor)
-    //PWR_MGMT_2 => 0x07 (disable gyro, keep everything else)
     
     uint8_t MPU9150_read_byte(uint8_t addr);
     void MPU9150_write_byte(uint8_t addr, uint8_t byte);

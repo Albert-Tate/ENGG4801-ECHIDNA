@@ -5,7 +5,6 @@ April 16, 2008
 Author: JL
 */
 
-//#include "../../PIC/system.h"	//I hate MPLAB so much
 #include "uart.h"
 #include "../inc/UART1.h"
 

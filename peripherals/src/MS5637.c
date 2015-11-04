@@ -7,8 +7,6 @@
 #include "stdint.h"
 #include "../../PIC/system.h"
 #include "../inc/MS5637.h"
-//#include "../inc/i2c-Master.h" //Only works when implicitly called.
-//Literally no one on earth can describe this
 #include "I2C.h"
 
 void MS5637_READ_CALIBRATION(uint16_t* buffer){ //6 16bit ints
@@ -28,7 +26,6 @@ void MS5637_READ_CALIBRATION(uint16_t* buffer){ //6 16bit ints
         buffer[i] = (temp << 8) | i2c_read();
         reset_i2c_bus();
     }
-    //reset_i2c_bus();
 }
 
 void MS5637_START_CONVERSION(uint8_t COMMAND) {
@@ -65,8 +62,7 @@ uint32_t MS5637_READ_ADC(void){
 void MS5637_CONV_METRIC(uint32_t PRESSURE_UNC, uint32_t TEMP_UNC, uint16_t* CAL_DATA, int32_t* PRESSURE, int32_t* TEMP) {
     int32_t dT;
     int64_t OFF, SENS;
-    //This is pretty intense for no apparent reason Also the datasheet is wrong
-    //Calculate difference between actual and reference temp
+    //Note that the datasheet has a bodged order of operations
     dT = TEMP_UNC - ( ((int32_t)CAL_DATA[4]) << 8);
     *TEMP = 2000 + (((int64_t)dT* ((int64_t)CAL_DATA[5])) >> 23);
     

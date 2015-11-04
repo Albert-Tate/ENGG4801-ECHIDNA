@@ -11,5 +11,4 @@
     #define MAX6_ON command_set_gpio
     #define MAX6_OFF command_reset_gpio
 
-
 #endif

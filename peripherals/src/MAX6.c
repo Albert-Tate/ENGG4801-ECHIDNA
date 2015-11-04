@@ -1,15 +1,8 @@
 /**********************************************************
- *  File: MAX6.h
- *  Description: Header file for GPS, uses I2C
+ *  File: MAX6.c
+ *  Description: file for GPS, uses I2C
  *  Author: Albert Tate
  *  Date: 17/05/15
+ * NOT IMPLEMENTED OR INCLUDED IN BUILD
  **********************************************************/
  
-#ifndef __MAX6_H__
-#define __MAX6_H__
-
-    #define MAX6_ON command_set_gpio
-    #define MAX6_OFF command_reset_gpio
-
-
-#endif

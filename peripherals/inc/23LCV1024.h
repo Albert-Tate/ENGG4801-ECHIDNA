@@ -5,8 +5,6 @@
  *  Date: 04/05/15
  **********************************************************/
 
- 
- //Extended variable to keep track of state?
 
 #ifndef __23LCV1024_H__
 #define __23LCV1024_H__

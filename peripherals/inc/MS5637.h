@@ -24,7 +24,8 @@
     #define MS5647_RESET 0x1E
     
     //General process: Send CMD_CONV_D1 to get the thing to get the data ready
-    //Send ADC_READ to get that data ONLY AFTER IT HAS BEEN CONVERTED, EARLIER ATTEMPTS WILL CORRUPT THE DATA
+    //Send ADC_READ to get that data ONLY AFTER IT HAS BEEN CONVERTED,
+        //EARLIER ATTEMPTS WILL CORRUPT THE DATA
     
     #define MS5637_C1 0x01
     #define MS5637_C2 0x02
@@ -39,10 +40,12 @@
     uint32_t MS5637_READ_ADC(void);
     
     //Returns compensated data in PRESSURE_UNC and TEMP_UNC
-    void MS5637_CONV_METRIC(uint32_t PRESSURE_UNC, uint32_t TEMP_UNC, uint16_t* CAL_DATA, int32_t* PRESSURE, int32_t* TEMP);
+    void MS5637_CONV_METRIC(uint32_t PRESSURE_UNC, 
+            uint32_t TEMP_UNC, uint16_t* CAL_DATA,
+            int32_t* PRESSURE, int32_t* TEMP);
 
 
-    //Example of how to use the library <3
+    //Example of how to use the library 
     //DONT FORGET TO SEND A RESET CMD (MS5637_START_CONVERSION(MS5637_RESET)
     /*
             int16_t MSCAL[6];
