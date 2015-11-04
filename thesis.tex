@@ -383,41 +383,15 @@ In light of this scenario, there is a significant research potential for such a 
 		
 		 This section only exists to inform the reader of the technologies that need to be understood to be able to justify the following design decisions. For further system details and justification of exact components see section \ref{sec:components}. 
 	%Remember: This section is about technology choices, not specific parts
-		\subsection{Microcontrollers}
-		A microcontroller is a general purpose computing device that can make basic calculations and communicate with external peripherals like sensors and memory modules. In general these can consume significant amounts of power with the PIC32 on the BEE-UTE Board \cite{Freakley13} drawing as much as 30mA in an active state \cite{PIC32}. \\
-		
-		In the context of this application, relatively little processing power is needed, as there is only a small amount of computations occurring onboard. What is required is an extremely low current draw, small physical size without relying on Ball Grid Array (BGA) footprints and a bevy of peripheral communication abilities. 
-		
-		\subsection{Movement Sensing}
-			Detecting animal movement usually requires the synergy of several sensors. Classifying movement states and localizing position are typically done separately. Movement is usually sensed by measuring acceleration of which there are two main approaches; measuring the acceleration along an axis (accelerometer), or measuring rotational acceleration across axes (gyroscope). Gyroscopes typically consume more power than accelerometers by a factor of 10 or more \cite{InvenMPU9150} so for this, low power, application, accelerometers will be used to measure movement. \\
 			
-			Accelerometers are devices which measure acceleration along an axis. The vast majority of accelerometers have 3 orthogonal axes of measurement. Tri-axial accelerometry has been used as a primary data source in the past, as movement states can be classified from just this data alone \cite{Ran12, Shepard08} and can be much more accurate and less invasive than equivalent measuring methods for determining movement states \cite{Terrill13, Lamprecht14}. 
-			
-		\subsection{GPS Module}
-			Global Positioning System (GPS) modules are devices which interact with satellites to determine their exact position. Implementation specifics vary but the fundamental concept is for the module to establish communication with four or more satellites using an external antenna and the align the internal clock with them to localize its position. \\
-			
-			This requires fairly high level floating point arithmetic which is usually provided by the module itself. These satellite fixes can take as long as 30 seconds. A typical GPS module can draw as much as 50mA in active mode \cite{Carroll10}.
-			
-		\subsection{Peripheral Communications}
-			In embedded systems there are two major protocols for communicating between devices that might have separate clocks. These methods are known as Serial Peripheral Interface (SPI) and Inter-Integrated Circuit (I2C). \\
-			
-			I2C is a simple, two wire interface while SPI is more complex. It requires 3 wires plus an extra wire for every device attached. In general I2C is a slower interface than SPI although that shouldn't be a limiting factor in this application. \\
-			
-			Since size is a significant requirement in this project, care should be taken to choose peripheral devices that operate on I2C so as to minimize the amount of printed circuit board (PCB) traces. 
-			
-		\subsection{Volatile \& Non Volatile Memories}
+		\subsection{Volatile \& Non Volatile Memories} \label{sec:volatile}
 			There are two major kinds of memory in electronic systems; volatile and non volatile each with their own power/use tradeoffs. Volatile memory is memory which loses the saved data whenever the power is disconnected whereas non volatile memory will retain memory permanently. \\
 			
 			The major design tradeoff between these two methods is energy consumption; it is very inefficient to write bursts of small data to a non volatile memory \cite{Sandisk} however the cost is reduced significantly when writing to volatile memory. \\
 			
 			The system will require some form of non volatile memory however the solution should have both forms of memory on board, to minimize frequency of writing to non volatile memory.
 			
-		\subsection{Power Supply}
-			Most electronic devices are designed with very specific input voltages to power them; small deviations can damage the device permanently. Battery voltages also decrease the longer they are used. Because of this, power supplies are used to regulate the voltage being supplied. \\
-			
-			There are two major kinds of power supplies being used in modern systems; linear and switching regulators \cite{TI2011}. Linear regulators use a transistor in the active region of operation to behave as a variable resistor, reducing the voltage. Because of this design, linear regulators can only ever output a lower voltage than their input. This design also incurs a significant amount of energy loss as the input and output currents are the same but the voltage changes significantly. The main benefits that come with linear regulators is a lack of noise and a significantly simpler design. \\
-			
-			Switching regulators are more complex and usually use a reference waveform and a comparator to vary the duty cycle of an output stage transistor which is then fed into a filtering circuit to stabilize the voltage into a specified DC value. They can also step up voltages from lower ones to higher ones. Because of this added complexity and the generation of the reference waveform, they tend to consume a small amount of current, called the quiescent current, even when not supplying energy to the circuit but despite this are generally much more efficient than linear regulators, typically around 90\% although this value will change depending on the load of the circuit attached. 
+			%Expand?
 			
 		\subsection{Battery Chemistries}
 			There are a number of different battery chemistries being used in embedded system applications, the three most common being: Alkaline, Lithium-Ion and Lithium-Polymer. \\
@@ -436,11 +410,25 @@ In light of this scenario, there is a significant research potential for such a 
 			\end{figure}		
 	
 			This damage is a significant factor for this project. When lithium cells, and a few other battery types, are damaged, they can sometimes undergo a state called thermal runaway, where the entirety of their energy is converted to heat in a few seconds. This can be quite violent and appropriate protections need to be taken into account to stop this from happening to any batteries placed on an animal as it would almost certainly prove fatal. Another safety issue which is relevant to all kinds of batteries, but especially coin cell and alkaline batteries with exposed terminals, is of ingestion. When batteries are ingested they can short across internal organs and burn their way through and/or have their cases eroded by stomach acid which releases the incredibly toxic interior. This cannot happen in this project and every measure reasonable should be taken to reduce the risk of it occurring.
+			
+		\section{Proposed Solution}
+		Understanding the physiology and behaviour of echidnas informed the design decisions regarding which sensors would be needed but this still fails to address the primary motivator of this project; achieving a longer operational lifetime. The proposed solution will utilise three novel methods in order to reduce the power consumption to a level where the board can operate for around a week on a single charge. \\
+		
+		The first, and most obvious, design decision is to use the microcontroller to supply power to the various sensors, allowing them to be shutoff entirely when they are not necessary. This has a number of drawbacks that have to be managed; sensors can be unstable for a short period after startup and a microcontroller will need to be able to source significant amounts of power from its I/O ports or else a lot of board space will have to be invested into MOSFET switches. \\
+		
+		The second design decision is to do with memory; as described in section \ref{sec:volatile} it is power inefficient to have frequent, small writes to non volatile memory. Instead of the simpler model employed for other systems, this system will use a multi level cache. There will be two volatile memory stores; a local store on the microcontroller and a further 2Mbit provided by external SRAM. This will serve to significantly reduce the frequency of writes to the $\mu$SD card to the point where they are practically negligible. \\
+		
+		The final design decision to reduce the power consumption is to have an adaptive sensing rate. Since echidnas can spend a significant amount of time not moving during hibernation [!REF] it would not be sensible to continue sampling at full speed. Depending on the activity observed, which can be quantified by any metric, the sampling period will change allowing the sensor to take relatively infrequent measurements when the echidna is stationary but increase the sampling ratio and collect more data when it is more active. \\
+		
+		These three design decisions will be implemented on a custom made board and will allow it to achieve a long operating life in the field of around 1 week.
+		
 
 \chapter{Design Overview}
 	NOTE: Many circuit schematics to go in here, might be a bit bare figure wise at the moment. Also missing some explicit discussion on circuitry specifics but we'll see how we're going for space when more is complete. \\ \noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 	\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+	
 	\section{Hardware} \label{sec:components}
+	%TODO: In here place the relevant prototypes and their schematics where appropriate and discuss how/if they informed design decisions
 		The general approach to component selection for this project has been a careful balancing act of size, power consumption and in some cases weight. Choosing the best devices to start from was absolutely essential in designing a system to meet the specifications. A few of these were selected over a few revisions; initially the project was implemented on small custom PCB's in order to test functionality. \\
 		
 		The designed system has utilised a few key elements from the solutions looked at previously in order to accomplish the stated specification. The microcontroller can turn peripheral devices on and off directly from the IO pins and there is a multilevel cache made of volatile and non volatile memories to get the best battery life out of the device. This will enable the microcontroller to spend most of the period sleeping, only moving to wake state to make a short series of measurements. An architecture overview is shown in Figure \ref{fig:HWD}.
@@ -454,6 +442,9 @@ In light of this scenario, there is a significant research potential for such a 
 
 		
 		\subsection{Microcontroller}
+		%TODO Talk about GPIO current sink
+		In the context of this application, relatively little processing power is needed, as there is only a small amount of processing occurring onboard; the microcontrollers main purpose is to collect and store information. What is required is an extremely low current draw, small physical size without relying on Ball Grid Array (BGA) footprints and a bevy of peripheral communication abilities. 
+				
 		The microcontroller was considered to be one the key choices with regards to achieving the operating lifetime. In the field there are a number of competing device lines and technologies in the super low power applications such as Microchip's nanoWatt, Atmels picoPower and Texas Instruments MSP430 series. \\
 		
 		All these device lines could theoretically be used for the device when only considering power usage, they all have active mode currents in the range of $\mu$A/MHz and have enough peripheral functionality and I/O ports to satisfy the requirements. \\
@@ -470,7 +461,9 @@ In light of this scenario, there is a significant research potential for such a 
 		\subsection{Sensors}
 		Sensors can have a noticeable impact on battery life. Some sensors, such as gyroscopes, can draw current in the range of mA. For most sensors, absolute accuracy is the ultimate design goal and so power consumption typically suffers. Luckily for most sensors, there exist some, relatively expensive, solutions that are highly configurable in order to customize the balance between accuracy and power consumption. \\
 		
-			\subsubsection{Accelerometry}
+			\subsubsection{Movement Sensing}		
+			Detecting animal movement usually requires the synergy of several sensors. Classifying movement states and localizing position are typically done separately. Movement is usually sensed by measuring acceleration of which there are two main approaches; measuring the acceleration along an axis (accelerometer), or measuring rotational acceleration across axes (gyroscope). Gyroscopes typically consume more power than accelerometers by a factor of 10 or more \cite{InvenMPU9150} so for this, low power, application, accelerometers will be used to measure movement. \\
+						
 			There are a number of exciting new entries into the low power accelerometry chip market. Most notable is the Bosh BMI160 \cite{bosch15} which has ultra low operational currents of less than a mA with both the accelerometer and gyroscope enabled. \\
 			
 			Unfortunately the BMI160 could not be used as the data would not be compatible with the existing set of data from the InvenSense MPU9150 \cite{InvenMPU9150} on the BEE-UTE board. The MPU9150 is an integrated inertial measurement unit (IMU) with an onboard accelerometer, thermometer, gyroscope and magnetometer. The MPU9150 draws 900uA with the accelerometer enabled, which is more than enough for this application as the device will spend the vast majority of its time powered down. 
@@ -488,6 +481,11 @@ In light of this scenario, there is a significant research potential for such a 
 			%Talk about phototransistors, output currents etc?
 			
 			\subsubsection{GPS Localisation}
+			%TODO: Reads awkwardly
+			Global Positioning System (GPS) modules are devices which interact with satellites to determine their exact position. Implementation specifics vary but the fundamental concept is for the module to establish communication with four or more satellites using an external antenna and the align the internal clock with them to localize its position. \\
+						
+			This requires fairly high level floating point arithmetic which is usually provided by the module itself. These satellite fixes can take as long as 30 seconds. A typical GPS module can draw as much as 50mA in active mode \cite{Carroll10}.
+						
 			The GPS was probably the hardest sensor to decide upon. It had to be small, power efficient and acquire a satellite fix very quickly, features that are rare in such devices. Eventually the u-blox MAX6 \cite{ubloxGPS} was chosen. \\
 			
 			The MAX6 can draw currents as small as 12mA during a 1Hz update rate, as much as five times smaller than the norm for a GPS. This however comes with a lot of drawbacks, namely price. The device is \$60 USD and can, at the time of writing, only be bought in Australia directly from the manufacturer. \\
@@ -497,8 +495,8 @@ In light of this scenario, there is a significant research potential for such a 
 			%layout considerations etc?
 			
 			\subsubsection{Battery Meter}
+			%TODO: Point this out better
 			With non volatile data storage, corruption of memory, especially in the presence of a under voltage event, becomes more likely. The battery meter will help the application track the battery voltage allowing it to shutdown safely when the battery is in danger of an under voltage event. \\
-			
 			
 			The battery meter chosen was the Maxim Integrated MAX17040 \cite{max17} mainly due to the low cost and size. %More?
 			
@@ -518,6 +516,11 @@ In light of this scenario, there is a significant research potential for such a 
 		With the selection of this serial SRAM and generating around 160 bytes of sensor readings every second (at a 1 Hz sampling rate) the $\mu$SD card will only need to be written to every 26 minutes. Without the serial SRAM, this would have been reduced to only 2 minutes. This reduces the effective duty cycle of the $\mu$SD card to the point where it is almost negligibly small for all but the largest write events.
 		
 		\subsection{Power Supply}
+
+		There are two major kinds of power supplies being used in modern systems; linear and switching regulators \cite{TI2011}. Linear regulators use a simpler, cheaper design whereby the output voltage is always lower than the input and the power loss inside the regulator is proportional to the current flowing. Switching regulators use very little power comparatively but even with no load circuit connected they will draw some current known as the quiescent current. They also can introduce switching noise into the design. \\
+		
+		Both of these designs have merit to be used in this project however switching supplies must be chosen as they can handle a wider range of inputs both above and below the selected output voltage. \\
+					
 		The power supply is one area of design where any mistakes have a cumulative effect on system power consumption. Quiescent currents and inefficiencies can become very significant in the face of relatively minor design errors. \\
 		
 		In order to maintain relatively safe with these issues, and to not fix what isn't broken, the same components as appeared on the BEE-UTE board were chosen. These devices are both Texas Instruments branded: the BQ24072 battery charging and power path management IC \cite{TIUSB} and the TPS63030DSK switching buck-boost regulator \cite{TIBUCK}. \\
@@ -657,6 +660,7 @@ In light of this scenario, there is a significant research potential for such a 
 	%GET PICTURES OF THEM THEN!?!?!
 	%Maybe some more stuff
 	
+	%TODO: Replace with several paragraphs showing the original PCB's, the errors and the corrections
 	The final PCB's were constructed by hand, sans GPS due to sourcing issues, and were mostly functional except for two small errors discussed in Section \ref{sec:PCBERROR}. The final board features a user LED, for rough debugging purposes, a programming header for programming and debugging, a UART output and all the other hardware features required of the project. A picture of the second to last revision is shown in Figure \ref{fig:PCB}.
 	
 %	COMPARE LV SLEEP TO WHILE 1
