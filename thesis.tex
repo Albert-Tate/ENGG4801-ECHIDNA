@@ -6,9 +6,28 @@
 \usepackage{adjustbox}
 \usepackage{graphicx}
 \usepackage{wrapfig}
+\usepackage{hyperref}
+\usepackage{listings}
 \usepackage[table]{xcolor}
 
 \titleformat{\chapter}{\normalfont\huge\bf}{\thechapter.}{20pt}{\huge}
+
+\lstdefinestyle{customc}{
+	belowcaptionskip=1\baselineskip,
+	breaklines=true,
+	numbers=left,
+	tabsize=4,
+	xleftmargin=\parindent,
+	language=C,
+	showstringspaces=false,
+	basicstyle=\ttfamily\scriptsize,
+	keywordstyle=\bfseries\color{green!40!black},
+	commentstyle=\itshape\color{purple!40!black},
+	identifierstyle=\color{blue},
+	stringstyle=\color{orange},
+}
+
+\lstset{escapechar=@,style=customc}
 % If you use a macro file called macros.tex :
 % \input{macros}
 % Note: The present document has its macros built in.
@@ -428,10 +447,9 @@ In light of this scenario, there is a significant research potential for such a 
 	\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 	
 	\section{Hardware} \label{sec:components}
-	%TODO: In here place the relevant prototypes and their schematics where appropriate and discuss how/if they informed design decisions
 		The general approach to component selection for this project has been a careful balancing act of size, power consumption and in some cases weight. Choosing the best devices to start from was absolutely essential in designing a system to meet the specifications. A few of these were selected over a few revisions; initially the project was implemented on small custom PCB's in order to test functionality. \\
 		
-		The designed system has utilised a few key elements from the solutions looked at previously in order to accomplish the stated specification. The microcontroller can turn peripheral devices on and off directly from the IO pins and there is a multilevel cache made of volatile and non volatile memories to get the best battery life out of the device. This will enable the microcontroller to spend most of the period sleeping, only moving to wake state to make a short series of measurements. An architecture overview is shown in Figure \ref{fig:HWD}.
+		The designed system has utilised a few key elements from the solutions looked at previously in order to accomplish the stated specification. The microcontroller can turn peripheral devices on and off directly from the IO pins, there is a multilevel cache made of volatile and non volatile memories and there is an adaptive sampling rate to get the best battery life out of the device. This will enable the microcontroller to spend most of the period sleeping, only moving to wake state to make a short series of measurements. An architecture overview is shown in Figure \ref{fig:HWD}.
 		
 		\begin{figure}[H]
 			\centering
@@ -442,8 +460,10 @@ In light of this scenario, there is a significant research potential for such a 
 
 		
 		\subsection{Microcontroller}
-		%TODO Talk about GPIO current sink
-		In the context of this application, relatively little processing power is needed, as there is only a small amount of processing occurring onboard; the microcontrollers main purpose is to collect and store information. What is required is an extremely low current draw, small physical size without relying on Ball Grid Array (BGA) footprints and a bevy of peripheral communication abilities. 
+		%TODO Make it read like not shit
+		In the context of this application, relatively little processing power is needed, as there is only a small amount of processing occurring onboard; the microcontrollers main purpose is to collect and store information. What is required is an extremely low current draw, small physical size without relying on Ball Grid Array (BGA) footprints and a bevy of peripheral communication abilities. \\
+		
+		Using the microcontroller to source power to peripherals directly from the I/O pins introduces a number of considerations. It will be necessary for the microcontroller to be able to source enough current from the I/O pins to power the devices without excessive heating or any damage. This setup is more preferable than using discrete MOSFET switches as they can take up a significant amount of space on the PCB. \\
 				
 		The microcontroller was considered to be one the key choices with regards to achieving the operating lifetime. In the field there are a number of competing device lines and technologies in the super low power applications such as Microchip's nanoWatt, Atmels picoPower and Texas Instruments MSP430 series. \\
 		
@@ -453,9 +473,16 @@ In light of this scenario, there is a significant research potential for such a 
 		
 		The two competing microcontrollers left belonged to the MSP430 series and the PIC24F series. Eventually PIC24F was chosen over the MSP430 as it was found to be significantly better documented and had one extra key feature; remappable peripherals. The PIC24F series can move the peripheral fucntions, like I2C, SPI, UART and others, onto any available I/O pin. This flexibility allowed for the most freedom when performing PCB placement as there would rarely be a situation where a pin was stuck in a tricky place. This user friendliness was of course only relative and there were a number of errors in documentation as is common in the newer chipsets. \\
 		
-		The PIC24FJ128GA306 was the final microcontroller chosen \cite{PIC24} and boasted current draws as low as 150 $\mu$A/MHz in active mode and around 400 nA in sleep mode with a real time clock enabled. The device is also relatively small, just 10mm by 10mm by 1mm, making it ideal for these applications. There is no BGA version of this exact chip but there is another in the PIC24FJ128GA310 family but due to the increased pin count is the same size. 
+		The PIC24FJ128GA306 was the final microcontroller chosen \cite{PIC24} and boasted current draws as low as 150 $\mu$A/MHz in active mode and around 400 nA in sleep mode with a real time clock enabled. The device is also relatively small, just 10mm by 10mm by 1mm, making it ideal for these applications. There is no BGA version of this exact chip but there is another in the PIC24FJ128GA310 family but due to the increased pin count is the same size. \\
 		
-		%Programming the device?
+		To verify the basic design and become familiar with the microcontroller an extremely basic breakout board was made, shown in figure \ref{fig:PICBREAK}. The board actually exposed problems with programming the device; the recommended capacitor on the MCLR pin, effectively the reset pin of the device, made the bus capacitance too high for the programmer to switch at speed. In newer versions this capacitor still appears in the schematic but is left unsoldered until the final program is loaded on the board although it is not strictly necessary. \\
+		
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=11cm]{Figures/PICBREAK.png}
+			\caption{PIC24F Basic Breakout}
+			\label{fig:PICBREAK}
+		\end{figure}		
 		
 		\newpage
 		\subsection{Sensors}
@@ -476,10 +503,25 @@ In light of this scenario, there is a significant research potential for such a 
 			\subsubsection{Light Sensor}
 			Most digital light sensors required a comparatively large amount of power to operate and had relatively large footprints. In light of this a completely analog light sensor was chosen, the Avago APDS-9005-020 \cite{AVAGOLIGHT}. \\
 			
-			The purpose of the sensor was to primarily tell if the echidna was resting in the shade or out in direct sunlight so metric values weren't important and with the PIC24F's onboard 10 bit ADC, precision wasn't a problem for this sensor. It was easily able to discern between light and dark. 
+			The purpose of the sensor was to primarily tell if the echidna was resting in the shade or out in direct sunlight so metric values weren't important and with the PIC24F's onboard 10 bit ADC, precision wasn't a problem for this sensor. It was easily able to discern between light and dark. \\ 
 			
-			%Talk about phototransistors, output currents etc?
+			%TODO: Maybe reorganise headings so this isn't under light sensor?
+			To test the three simpler sensors a simple breakout board was created as per the schematic shown in Figure \ref{fig:SENSEBREAKSCH} to create the PCB shown in \ref{fig:SENSEBREAKPCB}. These were designed as per the application notes in the relevant datasheets. Primarily this informed the addition of larger decoupling capacitors as sometimes the output from the microcontroller could waver when altering a lot of I/O pin states in quick succession and the use of smaller I2C pull up resistors; it was found the MPU-9150 was very particular about rise times. The board also demonstrated the need to glue down the light sensor as the pads alone do not form a satisfactory mechanical connection.
 			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=15cm]{Figures/SENSEBREAKSCH.png}
+				\caption{Sensor Breakout Schematic}
+				\label{fig:SENSEBREAKSCH}
+			\end{figure}		
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=6cm]{Figures/SENSEBREAKPCB.png}
+				\caption{Sensor Breakout PCB}
+				\label{fig:SENSEBREAKPCB}
+			\end{figure}		
+
 			\subsubsection{GPS Localisation}
 			%TODO: Reads awkwardly
 			Global Positioning System (GPS) modules are devices which interact with satellites to determine their exact position. Implementation specifics vary but the fundamental concept is for the module to establish communication with four or more satellites using an external antenna and the align the internal clock with them to localize its position. \\
@@ -490,19 +532,44 @@ In light of this scenario, there is a significant research potential for such a 
 			
 			The MAX6 can draw currents as small as 12mA during a 1Hz update rate, as much as five times smaller than the norm for a GPS. This however comes with a lot of drawbacks, namely price. The device is \$60 USD and can, at the time of writing, only be bought in Australia directly from the manufacturer. \\
 			
-			These concessions had to be made for this project however, as the GPS alone would otherwise require far more current than every other component combined otherwise.
+			These concessions had to be made for this project however, as the GPS alone would otherwise require far more current than every other component combined otherwise. \\
 			
-			%layout considerations etc?
+			In order to evaluate the performance of the board another breakout board was designed and implemented as per the application note. Unfortunately due to time constraints the board wasn't able to be tested before final manufacture had to begin. The schematic is shown in Figure \ref{fig:GPSBREAKSCH} and the PCB in Figure \ref{fig:GPSBREAKPCB}.
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=15cm]{Figures/GPSBREAKSCH.png}
+				\caption{GPS Breakout Schematic}
+				\label{fig:GPSBREAKSCH}
+			\end{figure}		
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=6cm]{Figures/GPSBREAKPCB.png}
+				\caption{GPS Breakout PCB}
+				\label{fig:GPSBREAKPCB}
+			\end{figure}				
 			
 			\subsubsection{Battery Meter}
-			%TODO: Point this out better
 			With non volatile data storage, corruption of memory, especially in the presence of a under voltage event, becomes more likely. The battery meter will help the application track the battery voltage allowing it to shutdown safely when the battery is in danger of an under voltage event. \\
+			
+			Non volatile memories typically utilise more advanced data storage techniques using file systems designed to organise data better. The significant downside to these file systems is when power is lost mid write, it is very likely that the file system will become corrupt. The obvious solution is for the system to shutdown safely before the battery level becomes critical. A battery meter can track the state of charge and shutdown the system safely before corruption of data occurs. \\
 			
 			The battery meter chosen was the Maxim Integrated MAX17040 \cite{max17} mainly due to the low cost and size. %More?
 			
 		\newpage
 		\subsection{Data Storage}
-		One of the key design decisions to this project is to have a multilevel cache with volatile and non volatile memories shown in Figure \ref{fig:MLD}. The first layer would be provided by the mircocontroller itself, with internal RAM. The next layer would be two of Microchip's 23LCV1024 1Mbit serial SRAM \cite{MICRAM}. The final layer would be a regular, off the shelf, $\mu$SD card. \\
+		One of the key design decisions to this project is to have a multilevel cache with volatile and non volatile memories shown in Figure \ref{fig:MLD}. The first layer would be provided by the mircocontroller itself, with internal RAM. The next layer would be comprised of external serial SRAM. The final layer would be a regular, off the shelf $\mu$SD card. \\
+		
+		Originally the 23LC512 Chips from Microchip were selected and the board shown in Figure \ref{fig:MEMBREAKPCB} was used to develop. These were functional chips but the 23LCV1024 chips were later found which were around the same price and power consumption, but doubled the available memory from 512kbit to 1024kbit so they were the memory modules used in the final version. \\
+		
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=6cm]{Figures/MEMBREAKPCB.png}
+			\caption{Memory Breakout PCB}
+			\label{fig:MEMBREAKPCB}
+		\end{figure}	
+		
 				
 				\begin{wrapfigure}{r}{0.4\textwidth}
 					\centering
@@ -528,6 +595,18 @@ In light of this scenario, there is a significant research potential for such a 
 		The BQ24072 allows for a user to charge the battery onboard or optionally power the device from the USB bus. This enables a potential fixed position application or an alternate, 5 volt source to power the device, although battery voltage tracking would not be available. In addition, the BQ24072 also has a number of thermal protection and short-circuit protections which will prove themselves essential in the rugged environment of the Australian outback. \\%and my care lol
 		
 		The TPS63030 is a fairly standard buck-boost switching regulator with a relatively flat efficiency curve of around 80\% for most of the operating range of currents. There is also around a 50uA quiescent current, which is very small for the price range of the device. The TPS63030 retails for approximately \$6 AUD and most power supplies that can provide higher efficiencies across the incredibly large range this device will have will be too costly for this project. \\
+		
+		%TODO: Power generation PCB board
+		%TODO: SCHEMATIC + PCB + PROBLEMS:
+		%TODO: FOOTPRINT ON TPS63030DSK-T
+		The TPS63030 and BQ24072 were put onto a breakout board designed as per the application note in the datasheets. The schematic appears in Figure \ref{fig:PWRBREAKSCH}. There were a few errors in the PCB that made testing of this circuit impossible at the time; the footprint for the TPS63030 was reversed and the land pads were too small for the pins. These were manually adjusted to be wider than the reccomended for later PCB's. An error that appears here, but wasn't detected until after the first full system PCB as produced, is around the output voltage on the TPS63030 (marked U1 in Figure \ref{fig:PWRBREAKSCH}). The two resistors form a voltage divider to create a feedback reference that the ship uses while the 100nF capacitor in parallel reduces ripple in this network. This feedback network however is not isolated from the actual output; the 'ground' the TPS63030 is driving against is about 500mV (the value of the feedback voltage) leading to the output voltage being closer to 4V. This was not detected until the first system was built unfortunately and cost a few weeks of development time. \\
+		
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=15cm]{Figures/PWRBREAKSCH.png}
+			\caption{Power Breakout Schematic}
+			\label{fig:PWRBREAKSCH}
+		\end{figure}	
 		
 		%TALK ABOUT SELECTION OF PASSIVES
 		Programming the output voltage on the TPS63030 is remarkably simple; Texas Instruments provide all the relevant equations and best practices for layouts and component specifications. The feedback voltage is fixed to around 500mV inside the device, although in practice this varied slightly depending on the load attached, which resulted in some fine tuning on the finished product. See Appendix [!REF] for detailed calculations and information about selection of passives and their specifications.
@@ -567,9 +646,9 @@ In light of this scenario, there is a significant research potential for such a 
 		
 	\newpage
 	\section{Firmware}
-		The approach to firmware was primarily iterative; an initial plan was laid out early in the project's life but this was repeatedly updated and refined in the face of new information or implementation subtleties. The choice to go without an embedded operating system was not taken lightly; an embedded operating system can save the developer having to delve into the specifics of a microcontrollers architecture. Ultimately it was decided that this benefit was not worth the inevitable lack of flexibility and operating overhead. \\
+		The approach to firmware was primarily iterative; an initial plan was laid out early in the project's life but this was repeatedly updated and refined in the face of new information or implementation subtleties and restrictions. The choice to go without an embedded operating system was not taken lightly; an embedded operating system can save the developer having to delve into the specifics of a microcontrollers architecture. Ultimately it was decided that this benefit was not worth the inevitable lack of flexibility and operating overhead. \\
 		
-		Fundamentally the system had a fairly straightforward task: during each sampling period, turn on all the sensors, give them time to settle, take the measurements then push the data out to the multilevel cache. The original high level flowchart is shown in Figure \ref{fig:FWD}
+		Fundamentally the system had a fairly straightforward task: during each sampling period, turn on all the sensors, give them time to settle, take the measurements then push the data out to the multilevel cache. The original high level flowchart is shown in Figure \ref{fig:FWD}.
 		
 		\begin{figure}[H]
 			\centering
@@ -580,11 +659,110 @@ In light of this scenario, there is a significant research potential for such a 
 
 		\newpage
 		\subsection{Design \& Implementation} %Working title
-		The design was always centered around readability and, while that may be highly subjective, a large effort was put forward to name that. For structure and flow control the OpenBSD kernel maintainers style guide \cite{BSDstyle} was used, as it is well suited to such a low level environment. \\
+		The design was always centered around simplicity and, while that may be highly subjective, a large effort was put forward to name that. For structure and flow control the OpenBSD kernel maintainers style guide \cite{BSDstyle} was used, as it is well suited to such a low level environment and was familiar. \\
 		
-		Gonna work on this part more once I've cleaned up the source code a little, its still a bit messy.
+		All the firmware developed in this thesis is original except for three exceptions. Microchip provide some skeleton structures to get started, the FatFs SD card driver, under a completely free license and some of the onboard peripheral code was either informed by or written entirely by JL from Engscope.com \cite{JL2013}. \\
+		
+		Code was stored on Github in a front facing repository. Having a reliable backup system for firmware development is always important as it was necessary more than a few times to revert to an earlier commit to check if any hardware had failed. The repository is online at: \url{https://github.com/Albert-Tate/ENGG4801-ECHIDNA}.
+		
 		\subsection{Functionality}
+
+		The implemented system can interact with light, temperature, pressure and accelerometry sensors to acquire data. This data can then be pushed to the multilevel cache however, due to some hardware failures, only part of this is tested. The sensors can be turned on and off directly via I/O ports. The system, in lieu of an available SD card, can still push the data out across a UART port. The system is able to measure its state of charge and subsequently shutdown if the battery is at risk of creating an undervoltage event and the system is able to adapt its sampling rate to become appropriate for the level of activity observed. \\
+		
+		%TODO: Can extend this section definitely ^^^
 		\subsection{Key Excerpts}
+		This section will detail some key excerpts from the code whose function would not be obvious at first glance. This section will not discuss basic things like configuring devices, entering sleep modes or manipulating GPIO pins to provide power with devices as they are relatively trivial. \\
+		
+		There are three major sections of code which should be discussed; the multilevel cache, the adaptive data rate and the battery state of change (SOC) and preventative shutdown measures. In the online repository all code will be commented however any code snippets here will have no comments appearing for the sake of brevity and will instead be explained in text. \\
+		%TODO: Battery meter, multilevel cache, variable data rates
+			\subsubsection{Multilevel Cache}
+				\begin{lstlisting}
+if(meas_index == MAX_MEASURE && BATT_SOC > MIN_SOC) {
+	uint32_t i;
+	RTC_ALARMOFF(); 
+	if(meas_index + mem_pointer < EXT_MEM_SIZE) {
+		for(i = 0; i < meas_index; i++) {
+			EXT_MEM_write_buffer(0, mem_pointer, sizeof(struct MEASUREMENT), (uint8_t*)&(measure[i]));
+			mem_pointer += sizeof(struct MEASUREMENT);
+		}
+		
+	} else if(meas_index*sizeof(struct MEASUREMENT) + mem_pointer < 2*EXT_MEM_SIZE) {
+		for(i = 0; i < meas_index; i++) {
+			EXT_MEM_write_buffer(1, mem_pointer - EXT_MEM_SIZE, sizeof(struct MEASUREMENT), (uint8_t*)&(measure[i]));
+			mem_pointer += sizeof(struct MEASUREMENT);
+		}
+	} else {
+		uint64_t j;
+		for(j = 0; j < (EXT_MEM_SIZE/sizeof(struct MEASUREMENT)/MAX_MEASURE); j++) {
+			
+			for(i = 0; i < MAX_MEASURE; i++) {
+				EXT_MEM_read_buffer(0, i + j*MAX_MEASURE, sizeof(struct MEASUREMENT), (uint8_t*)&(measure[0]));
+#ifdef SD_CARD                      
+				SD_CARD_WRITE_STRUCT(measure);
+#endif									
+			}
+
+		}
+		for(j = 0;
+			j < (EXT_MEM_SIZE/sizeof(struct MEASUREMENT)/MAX_MEASURE);
+			j++) {
+			
+			for(i = 0; i < MAX_MEASURE; i++) {
+				EXT_MEM_read_buffer(1, i + j*MAX_MEASURE, sizeof(struct MEASUREMENT), (uint8_t*)&(measure[0]));
+#ifdef SD_CARD
+				SD_CARD_WRITE_STRUCT(measure);
+#endif
+			}
+		}
+	}
+#ifndef SD_CARD
+	UART1Init(6);
+	delay(100);
+	UART_SEND_PACKET();
+	UART1PutChar('\n');
+#endif
+	meas_index = 0;
+}					
+				\end{lstlisting}
+				The multilevel cache needs significant explanation to be understood as it is a very dense section of code. Firstly some variables and their purposes are listed below: \\
+				\begin{description}
+					\item[meas\_index] Effectively a pointer for the local memory. Counts from 0 to MAX\_MEASURE and represents the index at which the next set of data should be loaded into the measure struct.
+					\item[mem\_pointer] The contiguous address for the external SRAM chips. This variable indexes across both chips so the maximum value is 2*EXT\_MEM\_SIZE.
+				\end{description}
+				
+				There are two key flows through this section of code: if meas\_index + mem\_pointer is less than the maximum allowable size (2*EXT\_MEM\_SIZE), which means that there is space available to store all the current measurements onto the SRAM, pushes data onto the SRAM and updates the mem\_pointer variable. There is a single function to address both memory modules; 'EXT\_MEM\_write\_buffer' whose first argument specifies which memory module to use. \\
+				
+				The second flow through this code occurs when there is no more room on the external SRAM. In this scenario the data has to be then written to the $\mu$SD card. Here is where things get slightly trickier to comprehend. Effectively the same loop is repeated twice again for each memory module and the data is read from each memory module in blocks corresponding to the maximum size that can be stored locally (MAX\_MEASURE) and then written to the $\mu$SD card using the 'SD\_CARD\_WRITE\_STRUCT' function. 
+			\subsubsection{Adaptive Data Rates}
+				\begin{lstlisting}
+ACTIVITY = measure[meas_index].X_ACC + measure[meas_index].Y_ACC + measure[meas_index].Z_ACC;
+
+activity_sticky--;
+if(activity_sticky < 0) {
+    if(ACTIVITY < THRESHOLD - 2000) {
+        ALARM = 1;
+        activity_sticky = 0;
+    } else if(ACTIVITY > THRESHOLD + 2000) {
+        ALARM = 0;
+        activity_sticky = STICKY_MAX;
+    }
+}
+        		\end{lstlisting}
+        	This section of code will adapt the data sampling rate by manipulating the ALARM variable, which then sets the real time clock (RTC) alarm. Unfortunately the internal RTC in the PIC24F is very limited and only two separate sampling rates are viable; 1 and 2 hertz. \\
+        	
+        	There are two key ideas here worth discussing; the 'ACTIVITY' variable and the 'activity\_sticky' variable. The ACTIVITY variable is currently calculated in a very simple manner but could be calculated by any metric or heuristic available. Since the PIC24F is a fairly slow microcontroller, a simple addition was opted for rather than a geometric mean. The 'activity\_sticky' controls the 'length' of the changed rate. During testing it was found to switch between the two quite rapidly and any condition to trigger a higher sampling rate would quickly disappear. The sticky variable allows for the increased data rate to linger for a few moments so that more data can be captured about what had just happened.\\
+        	
+        	Obviously a more flexible RTC would have been desirable but the key limiting factor in fleshing out this functionality is a lack of time. If the accelerometer is programmed to go into low power modes and generate an interrupt based on a certain accelerometry condition, larger times between samples could be used. This was the planned feature but due to a combination of issues that delayed manufacture, there was not enough time to implement it reliably.
+        	
+			\subsubsection{Battery SOC}
+			
+			The battery SOC 'shutdown' procedure is very important although it is incredibly simple. The state of charge is requested from the device and the only place it appears is at the start of the multi level cache snippet: \\
+			\begin{lstlisting}
+if(meas_index == MAX_MEASURE && BATT_SOC > MIN_SOC) {
+...
+}
+			\end{lstlisting}
+			This single condition will stop the system from writing any memory while the battery state could be dangerous. This is considered preferable to shutting down entirely as a single bad read, or a few bad reads in short succession, could bring the system down unnecessarily.\\
 	\newpage
 	\section{Manufacture}
 		Manufacture of miniaturised designs is always a challenge and can prove difficult both in producing PCB artwork and physically constructing the device. Since this is a prototype, everything had to be hand constructed which has somewhat limited miniturisation; namely in that BGA based footprints cannot be reasonably used. 
@@ -611,10 +789,8 @@ In light of this scenario, there is a significant research potential for such a 
 			\label{fig:PCB}
 		\end{figure}		
 			
-			%Approach taken
-			%Picture of bare PCB with separation pointed out
-			%Passives (0402)
 		\subsection{Bill of Materials}
+		%TODO: Maybe make this not shit
 		The bill of materials for the project is presented below in Figure \ref{fig:BOM} and is a complete mapping of parts to their specifiers on the board. All the prices are quoted as single purchase quantities and it is assumed (incredibly roughly) that the USD is equal to the AUD. \\
 		
 		The assumption that the USD was equal to the AUD was more appropriate at the start of the project than it is now. Almost all of these prices have gone up around 40\% due to the fall of the AUD. Components without a supplier must be purchased on request from the manufacturer and, for practicality reasons, should probably be replaced with an equivalent, easier to find, part in the next revision.
@@ -633,7 +809,6 @@ In light of this scenario, there is a significant research potential for such a 
 		
 		This means that the only way to reliably solder the device is to use non-leaded solder paste on the top side, which has a higher melting point, and apply the top side components first. Then use leaded solder, with a much lower melting point, on the reverse side. This will stop the solder joints remelting and any components falling off the device during the soldering process.
 		
-		%Maybe talk about iterations here?
 	\section{Integration}
 	\subsubsection{Case}
 	The purpose of this design is to be used in a wide variety of entirely uncontrolled, and very hostile, environments. As such for the device to survive for longer than a few moments it must be protected by a case. This case would need to be waterproof and shock resistant as well as quite small. \\
@@ -649,7 +824,6 @@ In light of this scenario, there is a significant research potential for such a 
 		\label{fig:CASE}
 	\end{figure}			
 
-	%Talk about cases here
 	Of the three cases pictured in Figure \ref{fig:CASE} only the red capped one could be used for the final PCB. The yellow cap was about 5mm too short and an appropriate battery could not be sourced in time for the clear capped container. The red capped container leaves a lot of air room and is far from ideal; the sensor and battery would have to be taped down to minimise internal movement.\\
 	
 	\subsubsection{PCB Fabrication \& Development}
@@ -657,11 +831,9 @@ In light of this scenario, there is a significant research potential for such a 
 	
 	Initially large breakout PCB's were created to test basic functionality and generally make it easier to debug a circuit. The only significant change from this stage of development was the adoption of a different SRAM chip as the existing one was found to be too power hungry. \\
 	
-	%GET PICTURES OF THEM THEN!?!?!
-	%Maybe some more stuff
+	The initial entire system PCB took several weeks to develop due to component sourcing issues. It was also entirely non functional due to a mistake when drafting the schematic for the power supply; the output and the feedback were not properly isolated leading to the TPS63030 controlling the output voltage against a floating ground. It was a simple process mistake but it alone cost about 2-3 weeks of the project development process which stopped several firmware features from being fleshed out adequately. \\
 	
-	%TODO: Replace with several paragraphs showing the original PCB's, the errors and the corrections
-	The final PCB's were constructed by hand, sans GPS due to sourcing issues, and were mostly functional except for two small errors discussed in Section \ref{sec:PCBERROR}. The final board features a user LED, for rough debugging purposes, a programming header for programming and debugging, a UART output and all the other hardware features required of the project. A picture of the second to last revision is shown in Figure \ref{fig:PCB}.
+	The final PCB was constructed by hand, sans GPS due to sourcing issues, and were mostly functional except for the two small errors discussed in Section \ref{sec:PCBERROR}. The final board features a user LED, for rough debugging purposes, a programming header for programming and debugging, a UART output and all the other hardware features required of the project. A picture of the second to last revision is shown in Figure \ref{fig:PCB}.
 	
 %	COMPARE LV SLEEP TO WHILE 1
 %	while 1 152.8mV		15mA
@@ -673,9 +845,21 @@ In light of this scenario, there is a significant research potential for such a 
 			\caption{Revision 2 of the Design}
 			\label{fig:FIN}
 		\end{figure}	
+
+	\newpage
+	\subsubsection{Visualisation of Sensor Data}
+		Visualisation of data was accomplished through a relatively simple python script. As discussed in Section \ref{sec:PCBERROR} the memory architecture was damaged and therefore the only way for data to exit the system is through the UART bus. The python script simply takes binary data from the UART bus and writes the received data to a .csv file. \\
 		
-	\subsubsection{Visualisation of Data}
-		%TODO
+		The second script takes these .csv files and generates an interactive webpage to view them with. This was done using the Bokeh library for python, which is still in a very early experimental state. The output is shown in Figure \ref{fig:VISDATA}. It is of note to mention that all the x axes are linked; if you see an interesting event and zoom in on it on the accelerometry output, the x axis bounds will be replicated in the other graphs allowing direct comparisons to be made.
+		
+				\begin{figure}[H]
+					\centering
+					\includegraphics[width=15cm]{Figures/VISDATA.png}
+					\caption{Data Visualisation}
+					\label{fig:VISDATA}
+				\end{figure}
+		
+		All of these scripts are online in the github repository and are submitted with the project.
 		
 \chapter{Discussion}
 
@@ -703,7 +887,9 @@ In light of this scenario, there is a significant research potential for such a 
 		
 		Both of these implementations would be able to be placed on most echidnas, but care would have to be taken to not place it on an echidna too light. It may not achieve the stated goals exactly as described but the weight is within the acceptable bounds for the primary application.
 		\subsection{Enclosure}
-		TODO: IP67 Tests
+		TODO: IP67 Tests: \\
+		RESULTS: \\
+		-250g drop - 80cm max \\
 		\subsection{Operational Lifetime}
 		
 		The fundamental purpose of this project is to extend the operational lifetime from the 40 hours provided by the BEE-UTE board \cite{Freakley13} and turn that into something longer and much more palatable. \\
@@ -966,6 +1152,10 @@ files can be downloaded.
 	Brattstrom, Bayard H. (1973)
 	\emph{Social and Maintenance Behavior of the Echidna, Tachyglossus aculeatus}
 	Journal of Mammalogy Vol. 54 No. 1 (Feb., 1973), pp. 50-70
+	
+	\bibitem{JL2013}
+	JL (2013)
+	\emph{PIC24 Tutorial} [Online], http://www.engscope.com/pic24-tutorial/
 \end{thebibliography}
 
 \end{document}

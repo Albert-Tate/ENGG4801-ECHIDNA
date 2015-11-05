@@ -72,6 +72,7 @@
 #define TIMER_END       T1CON = 0b0000000000000000;
 
 #define STICKY_MAX 10
+#define MIN_SOC 5
 
 //#define SD_CARD 0x00 //enables SD card
 
@@ -121,6 +122,9 @@ void TimerInit(void);
 void init_ports(void);
 int UART_SEND_PACKET(void);
 
+void IntInit(void);
+void __attribute__((__interrupt__)) _INT0Interrupt(void);
+
 //_timer interrupt for FatFS 1k/hz Found in mmc_pic24f.c
 void __attribute__((__interrupt__)) _T1Interrupt(void);
 
@@ -156,7 +160,12 @@ int16_t main(void) {
     //Set all ports to output to minimise leakage current
     init_ports();
     TRISDbits.TRISD11 = 1;
-    
+
+//    while(1) {
+        //Nop();
+//        ENTER_LV_SLEEP;
+//    }
+
     //setup remappable peripherals
     __builtin_write_OSCCONL(OSCCON & ~0x40);
             //SPI
@@ -305,7 +314,12 @@ int16_t main(void) {
          Attempt to write to SRAM
          If no room on either SRAM, write to SD Card
          */
-        if(meas_index == MAX_MEASURE) {
+        //Add BATT_SOC check
+        if(BATT_SOC == -1) {
+            BATT_SOC = 100; //How should I handle edge cases?
+        }
+        
+        if(meas_index == MAX_MEASURE && BATT_SOC > MIN_SOC) {
             uint32_t i;
             RTC_ALARMOFF(); //No interruptions while this happens
             if(meas_index + mem_pointer < EXT_MEM_SIZE) {
@@ -342,9 +356,10 @@ int16_t main(void) {
                                 sizeof(struct MEASUREMENT),
                                 (uint8_t*)&(measure[i]));
                     }
-#ifdef SD_CARD                      
+#ifdef SD_CARD
                         SD_CARD_WRITE_STRUCT(measure);
 #endif
+
                 }
                 //Read structs in from mem2, cpy to SD CARD
                 for(j = 0;
@@ -356,7 +371,7 @@ int16_t main(void) {
                                 (uint8_t*)&(measure[i]));
                     }
 #ifdef SD_CARD
-                    SD_CARD_WRITE_STRUCT(measure);
+                        SD_CARD_WRITE_STRUCT(measure);
 #endif
                 }
             }
@@ -577,4 +592,22 @@ init_ports(void)
     TRISE = 0x0000;
     TRISF = 0x0000;
     TRISG = 0x0000;
+}
+
+void
+IntInit(void) {
+   INTCON2 = 0x0000;   /*Setup INT0, INT1, INT2, interupt on falling edge*/
+   IFS0bits.INT0IF = 0;    /*Reset INT0 interrupt flag */
+   IEC0bits.INT0IE = 1;    /*Enable INT0 Interrupt Service Routine */
+   IPC0bits.INT0IP = 1;	/*set low priority*/
+}
+
+void __attribute__((__interrupt__, auto_psv)) _INT0Interrupt(void)
+{
+    IFS0bits.INT0IF = 0;    //Clear the INT1 interrupt flag or else
+    LED_ON;
+    delay_us_3(1000);
+    LED_OFF;
+   
+   //the CPU will keep vectoring back to the ISR
 }
