@@ -305,7 +305,7 @@ These biologging devices would not be limited to just echidnas however; there ar
 In light of this scenario, there is a significant research potential for such a device being developed; a tracker with a weight of less than 100 grams with operating lifetimes measured in days, perhaps weeks, rather than hours.
 
 \chapter{Background}
-	\section{Echidna Physiology \& Behaivour}
+	\section{Echidna Physiology \& Behaivour} \label{sec:echidna}
 	Echidna thermoregulation is poorly understood. There is no complete consensus on how it is done \cite{Brice02} but current studies suggest it is a combination of behaivoural patterns, like laying in the sun as a cold blooded animal would do, and physiological mechanisms, like any warm blooded creature.\\ 
 	
 	Their internal body temperature has been measured from as high as 35\textdegree C and as low as 5\textdegree C during hibernation. The echidna will usually seek shelter in hot conditions and is not known to sweat or pant. During autumn and winter, the echidna will generally go into a hibernative state, severely reducing activity. While the echidna are active however, they very seldom have interactions with other creatures. They are generally considered to be solitary creatures. \\
@@ -319,7 +319,7 @@ In light of this scenario, there is a significant research potential for such a 
 	Given this information, in order to properly understand what the echidna is doing at any given time a number of parameters must be sensed. In order to detect behaviours that could increase their body temperature, like moving around and basking in the sun, it is necessary to have some form of movement sensor and a light sensor. To understand if echidnas have these reactions to increased body temperature, environment temperature or both, it will be necessary to have an external temperature sensor and a sub dermal one. The selection, specification and implementation of the sub dermal temperature sensor is however out of the scope of this project.
 	%Due to a lack of suitable biologging platforms, existing studies have generally been done outside of the native habitat, which may have limited the accuracy of any results.
 	
-	\section{Product Specification}
+	\section{Product Specification} \label{sec:spec}
 	In light of this knowledge from the previous section, it is now possible to know what the biologging device should do and why. The key performance characteristic will be operational lifetime as there is an existing product \cite{Freakley13} that otherwise meets the specifications, but only lasts 40 hours in the field. \\
 	
 	The device needs to be extremely light to comply with ethics regulations \cite{Mamm87} usually being around 5\% of the body weight of the creature. In addition to this it must be extremely robust, it needs to handle the large temperature swings found in deserts, the enclosure must be waterproof and handle most low speed impacts. \\
@@ -397,6 +397,9 @@ In light of this scenario, there is a significant research potential for such a 
 			  
 			  The device does show a number of novel design decisions which are appropriate for this project. Since it has been such a long running project, the system engineering has been extensively honed and all the space available has been used well. 
 	\newpage
+	
+	%TODO: Sectiopn that shits on previous solutions
+	
 	\section{Technical Background}
 		Many useful lessons can be taken from the previous products that exist in the art however these alone do not create an entire solution for this application. This section will provide some technical background that is necessary to both fulfill the requirements set out by this project and to adequately justify a number of design decisions. This is not by any means an exhaustive background and some familiarity with embedded systems and electronics design is assumed. \\
 		
@@ -443,8 +446,6 @@ In light of this scenario, there is a significant research potential for such a 
 		
 
 \chapter{Design Overview}
-	NOTE: Many circuit schematics to go in here, might be a bit bare figure wise at the moment. Also missing some explicit discussion on circuitry specifics but we'll see how we're going for space when more is complete. \\ \noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
-	\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 	
 	\section{Hardware} \label{sec:components}
 		The general approach to component selection for this project has been a careful balancing act of size, power consumption and in some cases weight. Choosing the best devices to start from was absolutely essential in designing a system to meet the specifications. A few of these were selected over a few revisions; initially the project was implemented on small custom PCB's in order to test functionality. \\
@@ -521,7 +522,8 @@ In light of this scenario, there is a significant research potential for such a 
 				\caption{Sensor Breakout PCB}
 				\label{fig:SENSEBREAKPCB}
 			\end{figure}		
-
+			
+\newpage
 			\subsubsection{GPS Localisation}
 			%TODO: Reads awkwardly
 			Global Positioning System (GPS) modules are devices which interact with satellites to determine their exact position. Implementation specifics vary but the fundamental concept is for the module to establish communication with four or more satellites using an external antenna and the align the internal clock with them to localize its position. \\
@@ -887,18 +889,24 @@ if(meas_index == MAX_MEASURE && BATT_SOC > MIN_SOC) {
 		
 		Both of these implementations would be able to be placed on most echidnas, but care would have to be taken to not place it on an echidna too light. It may not achieve the stated goals exactly as described but the weight is within the acceptable bounds for the primary application.
 		\subsection{Enclosure}
-		TODO: IP67 Tests: \\
-		RESULTS: \\
-		-250g drop - 80cm max \\
+		%TODO: IP679 Tests: \\
+		%RESULTS: \\
+		%-250g drop - 80cm max \\
+		The enclosure had to be robust enough to survive the Australian outback. The most common method of defining case robustness is through the ingress protection (IP) and impact protection(IK) rating systems \cite{luma2014}. \\
+		
+		The chosen IK rating to test against was IK07 which rates the device to a 2 Joules impact. This should easily exceed any sort of impact an echidna can reasonably produce. This was tested by dropping a 250 gram weight at multiple heights. At a 400mm drop there was no visible damage (1J). At 800mm there was minor cosmetic damage but the enclosure remained entirely intact. The tests continued in 400mm intervals until a failure at 1600mm. The maximum height survivable was then 1200mm which means the enclosure could sustain an impact of atleast 3 Joules. \\
+		%IK07: 2 Joules impact via 0.25kg at 800m \\
+		
+		The chosen IP rating to test against was IP67 which mandates no dust ingress whatsoever and no water ingress after submersion 1m below the water line for 30 minutes. Dust ingression is fairly difficult to test with the limited equipment that is available; a proper test requires the use of specialised tools to exactly quantify the incoming pressure and mass of uniformly sized dust. The closest equivalent that could be performed was using dust found around the UQ campus. Water ingression could be much more easily tested and the enclosure was found to have absolutely no water ingress. This also implies it would have had no dust ingress but that couldn't be tested entirely.
+
 		\subsection{Operational Lifetime}
 		
 		The fundamental purpose of this project is to extend the operational lifetime from the 40 hours provided by the BEE-UTE board \cite{Freakley13} and turn that into something longer and much more palatable. \\
 		
-		Achieving very low current draws in this system has been quite difficult; the presence of the volatile memory chips has made minimising the sleep mode current very difficult as there is always some minor current leakage in maintaining a transistor state. The document on reducing power consumption from Microchip \cite{PICPWR} details some of the commonly used tactics to reduce power consumption in embedded systems. \\
+		Achieving very low current draws in this system has been quite difficult; the presence of the volatile memory chips has made minimising the sleep mode current challenging as there is always some minor current leakage in maintaining a transistor state. The document on reducing power consumption from Microchip \cite{PICPWR} details some of the commonly used tactics to reduce power consumption in embedded systems which were mostly employed. \\
 		
-		Several of these tactics were employed ...
+		The input current was measured by measuring the difference in voltage across a 10 ohm 1\% resistor in series with the battery. The measurement was performed by the DSO-X 2002A Agilent oscilloscope and it is the source of all the quantitative data in this section and the waveforms shown in Figure \ref{fig:input}. \\
 		
-		How was it measured??./..
 			\begin{figure}[H]
 				\centering
 				\includegraphics[width=14cm]{Figures/input.png}
@@ -906,51 +914,171 @@ if(meas_index == MAX_MEASURE && BATT_SOC > MIN_SOC) {
 				\label{fig:input}
 			\end{figure}	
 			
-		Discuss impacts
-		
-		Discuss possible improvements
+		It can be seen in Figure \ref{fig:input} that the DC average input current is around 7.5mA. This is obviously significantly higher than expected however with a 1.2A-h battery this will result in a lifetime of 160 hours (~6.5 days) and the 2A-h battery will last around 270 hours (~11 days). \\
 			
-		\subsection{Sensor Accuracy}
-		TODO: Accuracy Tests
-		
 		\subsection{PCB} \label{sec:PCBERROR}
 		The final PCB submitted was almost feature complete except for two small errors. Firstly the $\mu$SD card header footprint was reversed, and had to be bodged manually and the control pin for providing power to the $\mu$SD card was connected to an input only pin of the PIC24F. Fortunately this pin was right next to an unused output so a small solder bridge was all that was needed to correct it. \\
 		
-		Since submission these two issues have been fixed and are what appear in the final version of the supplied documents. \\
+		Since submission these two issues have been fixed and are what appear in the final version of the supplied documents. This board is shown below in Figure \ref{fig:FINAL} with some connections and the UART output wires soldered on.
+		
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=4cm]{Figures/final.png}
+				\caption{Final Board}
+				\label{fig:FINAL}
+			\end{figure}			
+		
+		The board supports all the planned features except for the $\mu$SD card due to an unfortunate late stage hardware failure and GPS module due to sourcing issues although there is an unpopulated footprint for the GPS module to occupy.		
+ 
 		
 	\section{Incomplete Work}
 	Unfortunately, due to a combination of several issues, some features and sections of the project could either not be finished, or not be tested. Where otherwise mentioned, every entry into this section implicitly  should appear in Section \ref{sec:FUTURE}, "Future Work".
 	
-	TODO: Flesh these out naturally
 	\subsubsection{GPS Module}
-		-Couldn't get it in time\\
-	\subsubsection{Proof of $\mu$SD Card}
-		-Detail explosions and what happened afterwards\\
+		The GPS module could not be sourced in time for the final submission as it is only orderable directly from the manufacturer. Regardless of if it arrived in time the firmware would likely not be able to be implemented in time as GPS modules report very large amounts of data in odd intervals. \\
+	\subsubsection{Proof of $\mu$SD Card} \label{sec:SDERROR}
+		The $\mu$SD card could not be powered directly from the I/O ports of the PIC24F safely, instead a MOSFET switch was used to source power directly from the supply. Unfortunately when this was applied the transient power requirement was too high for the power supply and the voltage reduced significantly leading to a brownout event. This also damaged the $\mu$SD card, the memory modules and the MOSFET itself. \\
+		
+		This problem could be remedied by an series inductor with the $\mu$SD cards power supply or by using a larger capacitance on the power bus. Unfortunately this occured late in the project so there wasn't enough time to get another board fabricated or to test the efficacy of this proposed fix. \\
+		
+		Regardless of these issues all the $\mu$SD card firmware was written but is obviously not been debugged properly. The firmware uses FatFs and is designed to be capable of writing binary measurement data to a file. \\
+		
 	\subsubsection{Full Lifetime Measurement}
-		-Time limitations\\
+		A lifetime test of the device to see how long it truly lasts was unfortunately never performed. This would be a favorable experiment to conduct as then the transient power consumption of the $\mu$SD card could be better profiled and optimised against. The limiting factor in not being able to perform this experiment is obviously the lack of a functioning memory bus in light of the events described in section \ref{sec:SDERROR}. Another limiting factor would have been time as it there would not have been enough time to test it multiple times or fabricate extra boards and test them in parallel. \\
 	
 	\section{Specification Comparison}
+	A direct comparison to the stated goals in section \ref{sec:spec} 'Product Specification' is useful to determine whether the project was successful or not and to what extent. This section will discuss the attributes of the final system and enclosure and compare them to the stated specifications in section \ref{sec:spec} and discuss what the impact of the success/failure of the metric has on the intended application of the project.\\
+	
+	%Adaptive data rate
+	%Sensors	
+	%Firmware
+	\subsubsection{Firmware \& Sensors}
+	Functionally the firmware is near complete; it has adaptive sampling rates, interacts with all the sensors implemented and was able to store data in the multilevel cache until the unfortunate hardware failure. All the sensors chosen and implemented would be able to adequately sense echidna movement, whether they are basking in the sun and accurately measure the temperature of the surrounding environment. \\
+	
+
+	%Max board size 40mm by 40mm
+	%Max material cost 150AUD
+	%PCB
+	\subsubsection{PCB Size and Cost}
+	The specified size and cost of the final system was to be less than 40mm by 40mm and cheaper than 150AUD. The final board is 20mm by 60mm which actually results in a smaller area by around 30\%. The cost is specified in Figure \ref{fig:BOM} to be less than 140AUD but that had a number of assumptions and doesn't take into account the cost of the PCB. Quantifying these costs can be quite difficult with the current volatility of the AUD and the volume of production unknown. In single quantities the PCB's cost 50AUD. Therefore by using a model without the GPS module the total real cost would be approximately 150\$ when taking into account the PCB, battery and $\mu$SD card, although these costs vary depending on application and volume. \\
+	
+	%Discuss previous paragraph + implications to use
+	Fundamentally the cost isn't a critical issue for the project. The utility of such a product is relatively independent of price as it is the only device in the niche of non networked miniature sensors. The final size is better than the size specified however an exact maximum size for when the system becomes unsuitable is hard to quantify. Regardless the size is definitely small enough to accommodate being attached to echidnas. \\
+	
+	\subsubsection{Enclosure Ratings and System Weight}
+	%Robustness			IP67 + IK07
+	%Enclosure
+	%Max weight 50g
+	The enclosure has to be able to survive in the Australian outback to be fit for purpose. To quantify such an abstract metric the IP and IK ratings were employed. Despite that there are some factors of the experiment unable to be performed accurately (dust ingress) it seems likely that the used enclosure will hit IP67 and IK07 ratings for dust/water ingression and impact resistance respectively. These are incredibly important when such high energy density in the batteries is utilised; there should be no incident where the battery is exposed to water or animal interference from a safety standpoint. \\
+	
+	For the system to be used on an animal, the entire weight must be less than 5\% of the creatures total weight \cite{Mamm87}. The total weight of the system with a 1.2A-h battery is 56.85 grams while when outfitted with a 2A-h battery it is 72.70 grams. Both of these values are larger than the specified max weight of 50 grams but the purpose of the limit should be assessed before this is considered a failure to meet the spec. This particular metric was created in order to allow the device to be placed on an echidna. As discussed in section \ref{sec:echidna} an adult echidna weighs between 4.5-6.5kg. This would mean, even when outfitted with a 2A-h battery, the system is only 1.6\% of the weight of a 4.5kg echidna. This easily complies with the ethics regulations as stated in \cite{Mamm87} and would therefore be fit for purpose. This also means an even larger battery could be used. \\
+	%Max weight
+	
+	%Operational lifetime 7 days
+	\subsubsection{Operational Lifetime}
+	The operational lifetime improvement was the motivating factor for this project as the BEE-UTE board would only last 40 hours in the field. Preliminary results shown in \ref{fig:input} suggest the average DC current draw would be 7.5mA leading to an 11 day lifetime with the 2A-h battery. Clearly there are significant improvements that can be made; the DC current draw should be able to be reduced until they are in the $\mu$A range. Regardless of this the device will operate for the specified lifetime of 7 and continue for around 4 days. Obviously the batteries will never have their full rated charge so the actual lifetime will be slightly less but not more than 10\% or so. \\
+	%Battery
+	
+	\subsubsection{Functionality}
+	In the final PCB there was a hardware failure that lead to the damage of several components on the memory bus. This is unfortunate and obviously stops the project from being in a state to actually achieve its core function of storing data. \\
+	
+	Despite this, the hardware presented meets all the other specifications that were planned and demonstrates that the core purpose, a longer lifetime, would be met by this project. A fully working product would only be a revision or two away. \\
+	
+	%Min storage space	1GB
+	%Talk about impacts of missing SD card and why it doesn't matter
 	\section{Future Work} \label{sec:FUTURE}
+		Although the project achieves the primary purpose there are clearly a large number of areas where improvements or changes should be made:
+		\begin{itemize}
+			\item $\mu$SD card firmware should be tested
+			\item Visualisation software expanded from scripts into GUI interfaces with support for input files rather than a UART stream
+			\item Total current draw be lowered: this requires more investigation to determine the cause
+			\item An external RTC should be used, with less drift and more smaller divisions in alarm settings.
+			\item The MPU-9150 should be replaced by the Bosch BMI160
+			\item Implement GPS firmware
+			\item Design a future PCB to a specific case and select battery based upon that to minimise system volume
+		\end{itemize}
 
 \chapter{Conclusion}
-
-\ldots 
+	This project was ultimately created to improve the lifetime of the BEE-UTE board for the explicit purpose of tracking echidnas to better understand their physiology, in particular their thermoregulation. \\
+	
+	This was achieved by creating a custom system outfitted with sensors that was able to:
+		\begin{itemize}
+			\item Vary the sampling rate based on the current activity
+			\item Use a multilevel cache of volatile and non volatile memories to reduce the frequency of writes to the $\mu$SD card
+			\item Control the power supply of sensors and other IC's directly from the microcontrollers I/O ports
+		\end{itemize}
+	Despite some late stage hardware failures, all sections of the intended system were able to be demonstrated and the average DC current was low enough that the device will operate for atleast the specified lifetime of 1 week while inside an IP67 and IK07 rated enclosure. \\
 
 \chapter{User Manual}
 
 \begin{enumerate}
 	\item Device Setup\\
-		-For users\\
-		-Run through power on procedure (battery connection + switch)\\
-		-Flashing LED's and what they mean to you \\
-	\item Battery Charging\\
-		-Connect battery + usb \\
-		-If lights all good \\
+	Using the device was designed to be very simple. Simply plug in the battery into the white terminal and turn the red switch into the on position. Upon startup the LED appearing in the top right of the board will flash several times in quick succession. If this light remains on it means there is no $\mu$SD card detected or there is a problem with it. During normal operation there is no other user feedback besides that given at turn on. \\
+		
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=9cm]{Figures/BATTERYIN.png}
+		\caption{Device Powered On}
+		\label{fig:BATTERYIN}
+	\end{figure}
+		
+	\item Battery Charging
+	%TODO: Specify what the lights do when you give up on improving the firmware
+	Charging the battery is very simple, the microUSB hub is the charging port. Simply connect it to any compatible 500mA or 1A rated usb port and charging will begin immediately. \\
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=9cm]{Figures/CHARGING.png}
+		\caption{Device Powered On}
+		\label{fig:CHARGING}
+	\end{figure}
+	
 	\item Data Storage Format \\
+		The data is simple binary data entered successively with no padding or checksums and is in little-endian format. The struct of the original data is shown in the following code snippet: \\
+		\begin{lstlisting}
+struct MEASUREMENT {
+	//MS5637
+	int32_t TEMPERATURE;
+	int32_t PRESSURE;
+	//Accelerometery
+	int16_t X_ACC;
+	int16_t Y_ACC;
+	int16_t Z_ACC;
+	//Light sensor
+	uint16_t LALOG;
+	//Time
+	uint8_t day; //0-6 valid
+	uint8_t hour; //lots of bad values could happen here
+	uint8_t minute;
+	uint8_t second;
+	//TOTAL 160 bit
+}
+		\end{lstlisting}
+		The following python code shows how to use the struct library to extract the values from a serial port into an array: \\
+		\begin{lstlisting}
+ser = serial.Serial('COM3', 142000, timeout=1)
+
+FORMAT_STR = "<iihhhHBBBB"
+
+x = ser.read()
+result = struct.unpack(FORMAT_STR, x)
+		\end{lstlisting}
+		
 		-Provide copy of struct \\
 		-example python code to retrieve values\\
 	\item Programming \\
-		-How to connect PICkit 3
+		Programming of the device is done with the PICKit 3 and through Microchip's MPLAB software suite. Appropriate compilers and drivers should be downloaded directly from Microchip. \\
+		
+		To program the device, disconnect the battery and then plug in the PICKit 3 into the header directly below the logo ensuring that the pin 1 indicators of both the $\mu$Tracker and the PICKit align. \\ 
+		
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=9cm]{Figures/1.jpg}
+				\includegraphics[width=9cm]{Figures/2.jpg}
+				\includegraphics[width=9cm]{Figures/3.jpg}
+				\caption{Connecting the Programmer}
+				\label{fig:PROGRAMMING}
+			\end{figure}
 		
 \end{enumerate}
 
@@ -1156,6 +1284,10 @@ files can be downloaded.
 	\bibitem{JL2013}
 	JL (2013)
 	\emph{PIC24 Tutorial} [Online], http://www.engscope.com/pic24-tutorial/
+	
+	\bibitem{luma2014}
+	lumascape (2014)
+	\emph{Ingress Protection Rating} [Online], http://www.lumascape.com/html/IP\_IK\_rating.htm
 \end{thebibliography}
 
 \end{document}
