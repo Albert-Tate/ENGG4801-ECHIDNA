@@ -9,6 +9,7 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage[table]{xcolor}
+\usepackage[final]{pdfpages}
 
 \titleformat{\chapter}{\normalfont\huge\bf}{\thechapter.}{20pt}{\huge}
 
@@ -1101,36 +1102,13 @@ result = struct.unpack(FORMAT_STR, x)
 
 % \include appendix chapters here.
 
-\chapter{Appendix}
+\chapter{Schematics \& PCB Artwork}
+		\includepdf[landscape=true, pages={3,1,2,4,5,6,7}]{schematics.pdf}
+		
+\chapter{Main Firmware Routine}
+\lstinputlisting[firstline=149,lastline=388]{main.c}
 
-Appendices are useful for supplying necessary details or explanations
-which do not seem to fit into the main text, perhaps because they are
-too long and would distract the reader from the central argument.
-Appendices are also used for program listings.
-
-Notice that appendices are ``numbered'' with capital letters, not
-numerals.  When the \verb+\appendix+ command in
-\LaTeX~\cite[p.\,175]{lamport} is used with the \texttt{book} document
-class, it causes subsequent chapters to be treated as appendices.
-
-\chapter{Program listings}
-
-\section{First program}
-
-Some initial explanatory notes may precede the listing.
-
-\section{Second program}
-
-\section{Etc.}
-
-\chapter{Companion disk}
-
-If you wish to make some computer files available to your examiners,
-you can list and describe the files here.  The files can be supplied
-on a disk and inserted in a pocket fixed to the inside back cover.
-
-The disk will not be needed if you can specify a URL from which the
-files can be downloaded.
+\chapter{Submission Files}
 
 \cleardoublepage
 
